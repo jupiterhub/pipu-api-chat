@@ -2,80 +2,99 @@ package org.jupiterhub.pipu.chat.socket;
 
 import io.smallrye.common.annotation.Blocking;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jupiterhub.pipu.chat.client.Directory;
-import org.jupiterhub.pipu.chat.service.DirectoryService;
+import org.jboss.logging.Logger;
+import org.jupiterhub.pipu.chat.record.Chat;
+import org.jupiterhub.pipu.chat.record.client.Directory;
+import org.jupiterhub.pipu.chat.service.client.DirectoryRestService;
 import org.jupiterhub.pipu.chat.util.EnvironmentUtil;
+import org.jupiterhub.pipu.chat.util.JsonChatUtil;
+
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
-@ServerEndpoint("/chat/ws/{username}")
+@ServerEndpoint(value = "/chat/ws/{username}")
 @ApplicationScoped
 public class ChatSocket {
     Map<String, Session> sessions = new ConcurrentHashMap<>();
 
+    @Inject
+    Logger log;
+
     @RestClient
-    private DirectoryService directoryService;
+    private DirectoryRestService directoryRestService;
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username) {
         String hostname = EnvironmentUtil.getHostname();
         System.out.println("## HOST NAME : "+ hostname);
-        directoryService.register(new Directory(username, hostname));
+        System.out.println("## USERNAME : "+  username);
+        directoryRestService.register(new Directory(username , hostname));
+
         // TODO: DB Load top k previous messages (cached on frontend)
         sessions.put(username, session);
     }
 
     @OnClose
     public void onClose(Session session, @PathParam("username") String username) {
-        directoryService.delete(username);
+        directoryRestService.delete(username);
         sessions.remove(username);
         broadcast("User " + username + " left");
     }
 
     @OnError
     public void onError(Session session, @PathParam("username") String username, Throwable throwable) {
-        directoryService.delete(username);
+        directoryRestService.delete(username);
         sessions.remove(username);
         broadcast("User " + username + " left on error: " + throwable);
     }
 
+    private Chat asyncParse(String message) {
+        try {
+            return JsonChatUtil.decode(message);
+        } catch (DecodeException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @OnMessage
     public void onMessage(Session session, String message, @PathParam("username") String username) {
+        Chat chat = asyncParse(message);
+        System.out.println("## PARSED CHAT " + chat);
+        if (sessions.get(chat.to()) != null) {
+            System.out.println("## Sending message");
+            sessions.get(chat.to()).getAsyncRemote().sendText(chat.message());
+        } else {
+            System.out.println("## Looking up different host");
+            // not in this host, lookup and then send message
+            directoryRestService.lookup(chat.to()).thenAccept(sendMessage(chat));
+        }
 
-        System.out.println("## Sending message to with this session: " + session);
-        System.out.println("## Sending message to with this session (from session map): " + sessions.get(username));
-        directoryService.lookup(username).thenApply(response -> {
+        // also send message to self
+        sessions.get(username).getAsyncRemote().sendText(chat.message());
+    }
+
+    private Consumer<Response> sendMessage(Chat chat) {
+        return response -> {
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                System.out.println("## User " + username + " does not exist");
+                System.out.println("## User " + chat.to() + " does not exist");
+                return;
             }
+
             Directory directory = response.readEntity(Directory.class);
             System.out.println("### RETRIEVED " + directory);
 
-            if (EnvironmentUtil.isSameHost(directory.host())) {
-                // target is connected to same host, we can just send message directly
-                sessions.get(username).getAsyncRemote().sendText(message);
-            } else {
-                System.out.println("## TODO: send message to a different host");
-                // REST CLIENT -> SVC -> POD.
-                // REST CLIENT NEEDS TO BE CONFIGURED TO THE SPECIFIC POD
-            }
-
-            // OLD method
-//            if (message.equalsIgnoreCase("_ready_")) {
-//                broadcast("User " + username + " joined");
-//            } else {
-//                broadcast(">> " + username + ": " + message);
-//            }
-            return directory;
-        });
+            System.out.println("## TODO: send message to a different host");
+            // REST CLIENT -> SVC -> POD.
+            // REST CLIENT NEEDS TO BE CONFIGURED TO THE SPECIFIC POD
+        };
     }
 
     private void broadcast(String message) {

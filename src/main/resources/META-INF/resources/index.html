@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Quarkus Chat!</title>
+    <title>PIPU Chat!</title>
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/css/patternfly.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/css/patternfly-additions.min.css">
 
@@ -21,14 +21,14 @@
 <nav class="navbar navbar-default navbar-pf" role="navigation">
     <div class="navbar-header">
         <a class="navbar-brand" href="/">
-            <p><strong>>> Quarkus Chat!</strong></p>
+            <p><strong>>> PIPU Chat!</strong></p>
         </a>
     </div>
 </nav>
 <div class="container">
     <br/>
     <div class="row">
-        <input id="name" class="col-md-4" type="text" placeholder="your name">
+        <input id="from" class="col-md-4" type="text" placeholder="your name">
         <input id="to" class="col-md-4" type="text" placeholder="to:">
         <button id="connect" class="col-md-1 btn btn-primary" type="button">connect</button>
         <br/>
@@ -77,7 +77,7 @@
 
       var connect = function() {
           if (! connected) {
-              var name = $("#name").val();
+              var name = $("#from").val();
               console.log("Val: " + name);
               socket = new WebSocket("ws://" + location.host + "/chat/ws/" + name);
               socket.onopen = function() {
@@ -99,8 +99,11 @@
       var sendMessage = function() {
           if (connected) {
               var value = $("#msg").val();
-              console.log("Sending " + value);
-              socket.send(value);
+              var from = $("#from").val();
+              var to = $("#to").val();
+              var data = { 'id': 1, 'message': value, 'from': from, 'to': to, 'timestamp': Date.now()};
+              console.log(data);
+              socket.send(JSON.stringify(data));
               $("#msg").val("");
           }
       };

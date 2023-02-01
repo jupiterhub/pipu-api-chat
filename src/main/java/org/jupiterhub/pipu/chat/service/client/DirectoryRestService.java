@@ -1,7 +1,7 @@
-package org.jupiterhub.pipu.chat.service;
+package org.jupiterhub.pipu.chat.service.client;
 
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
-import org.jupiterhub.pipu.chat.client.Directory;
+import org.jupiterhub.pipu.chat.record.client.Directory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -9,7 +9,7 @@ import java.util.concurrent.CompletionStage;
 
 @Path("/directory")
 @RegisterRestClient(configKey = "pipu-chatdir-api")
-public interface DirectoryService {
+public interface DirectoryRestService {
 
     @POST
     CompletionStage<Directory> register(Directory directory);
@@ -24,5 +24,5 @@ public interface DirectoryService {
 
     @DELETE
     @Path("/{key}")
-    void delete(@PathParam("key") String key);
+    CompletionStage<Void> delete(@PathParam("key") String key);
 }

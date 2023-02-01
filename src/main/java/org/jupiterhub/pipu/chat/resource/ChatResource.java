@@ -2,7 +2,7 @@ package org.jupiterhub.pipu.chat.resource;
 
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import org.jupiterhub.pipu.chat.client.Directory;
+import org.jupiterhub.pipu.chat.record.client.Directory;
 import org.jupiterhub.pipu.chat.record.Chat;
 
 import javax.ws.rs.*;

@@ -4,7 +4,10 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import org.jupiterhub.pipu.chat.record.client.Directory;
 import org.jupiterhub.pipu.chat.record.Chat;
+import org.jupiterhub.pipu.chat.service.ChatService;
+import org.jupiterhub.pipu.chat.socket.ChatSocket;
 
+import javax.inject.Inject;
 import javax.ws.rs.*;
 import java.util.List;
 
@@ -15,31 +18,36 @@ import java.util.List;
 public class ChatResource {
 
 
+    @Inject
+    ChatService chatService;
+
+
+    @POST
+    public void send(Chat chat) {
+        chatService.sendMessage(chat);
+    }
+
     @GET
     public Multi<List<Chat>> allChat() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @GET
     @Path("/{id}")
     public Uni<Chat> lookup(String id) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @DELETE
     @Path("/{id}")
     public void delete(String id) {
-
+        throw new UnsupportedOperationException();
     }
 
     @PUT
     @Path("/{id}")
     public Uni<Chat> update(Chat chat) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
-    @POST
-    public Uni<Directory> register(Directory directory) {
-        return null;
-    }
 }

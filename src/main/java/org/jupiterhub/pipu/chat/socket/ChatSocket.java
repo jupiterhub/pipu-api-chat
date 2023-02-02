@@ -1,14 +1,16 @@
 package org.jupiterhub.pipu.chat.socket;
 
-import io.smallrye.common.annotation.Blocking;
+import io.quarkus.logging.Log;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jboss.logging.Logger;
 import org.jupiterhub.pipu.chat.record.Chat;
 import org.jupiterhub.pipu.chat.record.client.Directory;
+import org.jupiterhub.pipu.chat.service.ChatService;
+import org.jupiterhub.pipu.chat.service.client.ChatRestService;
 import org.jupiterhub.pipu.chat.service.client.DirectoryRestService;
 import org.jupiterhub.pipu.chat.util.EnvironmentUtil;
 import org.jupiterhub.pipu.chat.util.JsonChatUtil;
-
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -16,47 +18,57 @@ import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import javax.ws.rs.core.Response;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.net.URI;
 import java.util.function.Consumer;
 
 @ServerEndpoint(value = "/chat/ws/{username}")
 @ApplicationScoped
 public class ChatSocket {
-    Map<String, Session> sessions = new ConcurrentHashMap<>();
 
     @Inject
-    Logger log;
+    private ChatService chatService;
+
+    @ConfigProperty(name = "pipu.chat-api.uri")
+    private String uri;
 
     @RestClient
     private DirectoryRestService directoryRestService;
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username) {
-        String hostname = EnvironmentUtil.getHostname();
-        System.out.println("## HOST NAME : "+ hostname);
-        System.out.println("## USERNAME : "+  username);
-        directoryRestService.register(new Directory(username , hostname));
+        System.out.println("## URI INJECTED: " + uri);
+        String replacedUri = uri.replace("{POD_NAME}", EnvironmentUtil.getHostname());
+        System.out.println("## HOST NAME : " + replacedUri);
+        System.out.println("## USERNAME : " + username);
 
-        // TODO: DB Load top k previous messages (cached on frontend)
-        sessions.put(username, session);
+        Directory directory = new Directory(username, replacedUri);
+        directoryRestService.register(directory)
+                .thenAccept(unused -> {
+                    chatService.openSession(username, session);
+                })
+                .exceptionally(throwable -> {   // ORDER IS IMPORTANT. Exceptionally after thenAccept to ensure it doesn't run
+                    Log.errorf("@onOpen. Failed to call directory service. Not registering %s. Cause: %s", directory, throwable.getMessage());
+                    return null;
+                });
+
+
     }
 
     @OnClose
-    public void onClose(Session session, @PathParam("username") String username) {
+    public void onClose(@PathParam("username") String username) {
         directoryRestService.delete(username);
-        sessions.remove(username);
+        chatService.closeSession(username);
         broadcast("User " + username + " left");
     }
 
     @OnError
     public void onError(Session session, @PathParam("username") String username, Throwable throwable) {
         directoryRestService.delete(username);
-        sessions.remove(username);
+        chatService.closeSession(username);
         broadcast("User " + username + " left on error: " + throwable);
     }
 
-    private Chat asyncParse(String message) {
+    private Chat parseJson(String message) {
         try {
             return JsonChatUtil.decode(message);
         } catch (DecodeException e) {
@@ -65,40 +77,48 @@ public class ChatSocket {
     }
 
     @OnMessage
-    public void onMessage(Session session, String message, @PathParam("username") String username) {
-        Chat chat = asyncParse(message);
-        System.out.println("## PARSED CHAT " + chat);
-        if (sessions.get(chat.to()) != null) {
-            System.out.println("## Sending message");
-            sessions.get(chat.to()).getAsyncRemote().sendText(chat.message());
+    public void onMessage(Session session, String message) {
+        Chat chat = parseJson(message);
+        if (chatService.isActive(chat.to())) {
+            Log.info("Sending message locally");
+            chatService.sendMessage(chat.to(), chat.message());
+            chatService.sendMessage(chat.from(), chat.message());
         } else {
-            System.out.println("## Looking up different host");
+            Log.info("Sending message remotely");
             // not in this host, lookup and then send message
-            directoryRestService.lookup(chat.to()).thenAccept(sendMessage(chat));
+            directoryRestService.lookup(chat.to())
+                    .thenAccept(sendRemoteMessage(chat))
+                    .thenAccept(unused -> chatService.sendMessage(chat.from(), chat.message()))   // send to self too
+                    .exceptionally(throwable -> {
+                        Log.errorf("@onMessage. Failed to call directory service. Not sending %s. Cause: %s", chat, throwable.getMessage());
+                        return null;
+                    });
         }
 
-        // also send message to self
-        sessions.get(username).getAsyncRemote().sendText(chat.message());
     }
 
-    private Consumer<Response> sendMessage(Chat chat) {
+
+    private Consumer<Response> sendRemoteMessage(Chat chat) {
         return response -> {
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                System.out.println("## User " + chat.to() + " does not exist");
+                Log.infof("User %s not found in remote, not sending message.", chat.to());
                 return;
             }
 
             Directory directory = response.readEntity(Directory.class);
-            System.out.println("### RETRIEVED " + directory);
+            ChatRestService build = RestClientBuilder.newBuilder()
+                    .baseUri(URI.create(directory.host()))
+                    .build(ChatRestService.class);
 
-            System.out.println("## TODO: send message to a different host");
-            // REST CLIENT -> SVC -> POD.
-            // REST CLIENT NEEDS TO BE CONFIGURED TO THE SPECIFIC POD
+            build.send(chat).exceptionally(throwable -> {
+                Log.errorf("@onMessage. Failed to send remote[%s] message %s. Cause: %s", directory.host(), chat, throwable.getMessage());
+                return null;
+            });
         };
     }
 
     private void broadcast(String message) {
-        sessions.values().forEach(s -> {
+        chatService.getActiveSessions().values().forEach(s -> {
             s.getAsyncRemote().sendObject(message);
         });
     }

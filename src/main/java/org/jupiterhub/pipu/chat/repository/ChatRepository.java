@@ -2,21 +2,23 @@ package org.jupiterhub.pipu.chat.repository;
 
 import org.jupiterhub.pipu.chat.record.Chat;
 import org.jupiterhub.pipu.chat.record.Message;
+import org.jupiterhub.pipu.chat.record.MessageTimestamp;
 
 import java.util.List;
 
 public interface ChatRepository {
-    List<Chat> getChats();
+    List<Chat> getAllChats(int offset, int limit);
+    List<Chat> getChatsById(String userId);
+    List<Chat> getChatsWithUser(String userId);
+    Chat saveChat(Chat chat);
+    void deleteChat(int chatId);
 
-    List<Chat> getChatsByUserId(String userId);
+    Message saveMessage(int chatId, Message message);
+    Message updateMessage(int chatId, String messageId, String message);
+    Message deleteMessage(int chatId, String messageId);
+    MessageTimestamp markSent(int chatId, String messageId);
+    MessageTimestamp markDelivered(int chatId, String messageId);
+    MessageTimestamp markRead(int chatId, String messageId);
 
-    Chat saveChat(Chat chat);   // or update
-
-    Chat saveMessage(String chatId, Message message);
-
-    Chat updateMessage(String chatId, String messageId, String message);
-
-    List<Message> getMessages(String chatId, int offset, int limit);
-
-    void deleteChat(Message message);
+    List<Message> getMessagesByOffset(String chatId, int offset, int limit);
 }

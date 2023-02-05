@@ -18,14 +18,17 @@ public class JsonChatUtil {
                     parsed.getString("id"),
                     parsed.getString("message"),
                     parsed.getString("from"),
-                    parsed.getString("to"),
-                    parsed.getJsonNumber("timestamp").longValue());
+                    parsed.getString("to"));
         }
     }
 
     public static String encode(Message message) throws EncodeException {
         return Json.createObjectBuilder()
-                .add("timestamp", message.timestamp())
+                .add("timestamp", Json.createObjectBuilder()
+                        .add("sent", message.timestamp().sent())
+                        .add("delivered", message.timestamp().delivered())
+                        .add("read", message.timestamp().read())
+                        .build())
                 .add("from", message.from())
                 .add("to", message.to())
                 .add("message", message.message())

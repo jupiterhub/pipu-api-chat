@@ -1,4 +1,10 @@
 package org.jupiterhub.pipu.chat.record;
 
-public record Message(String id, String message, String from, String to, Long timestamp) {
+import java.time.Instant;
+
+public record Message(String id, String message, String from, String to, MessageTimestamp timestamp) {
+    public Message(String id, String message, String from, String to) {
+        this(id, message, from, to,
+                new MessageTimestamp(Instant.now().toEpochMilli(), null, null));
+    }
 }

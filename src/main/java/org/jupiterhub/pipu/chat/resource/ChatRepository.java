@@ -1,7 +1,7 @@
 package org.jupiterhub.pipu.chat.resource;
 
-import org.jupiterhub.pipu.chat.record.Chat;
+import org.jupiterhub.pipu.chat.record.Message;
 
 public interface ChatRepository {
-    Chat save(Chat chat);
+    Message save(Message message);
 }

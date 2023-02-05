@@ -2,10 +2,8 @@ package org.jupiterhub.pipu.chat.resource;
 
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import org.jupiterhub.pipu.chat.record.client.Directory;
-import org.jupiterhub.pipu.chat.record.Chat;
-import org.jupiterhub.pipu.chat.service.ChatService;
-import org.jupiterhub.pipu.chat.socket.ChatSocket;
+import org.jupiterhub.pipu.chat.record.Message;
+import org.jupiterhub.pipu.chat.socket.MessageSocketSocketService;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -17,24 +15,22 @@ import java.util.List;
 @Path("/chat")
 public class ChatResource {
 
-
     @Inject
-    ChatService chatService;
-
+    MessageSocketSocketService messageSocketService;
 
     @POST
-    public void send(Chat chat) {
-        chatService.sendMessage(chat);
+    public void send(Message message) {
+        messageSocketService.sendMessage(message);
     }
 
     @GET
-    public Multi<List<Chat>> allChat() {
+    public Multi<List<Message>> allChat() {
         throw new UnsupportedOperationException();
     }
 
     @GET
     @Path("/{id}")
-    public Uni<Chat> lookup(String id) {
+    public Uni<Message> lookup(String id) {
         throw new UnsupportedOperationException();
     }
 
@@ -46,7 +42,7 @@ public class ChatResource {
 
     @PUT
     @Path("/{id}")
-    public Uni<Chat> update(Chat chat) {
+    public Uni<Message> update(Message message) {
         throw new UnsupportedOperationException();
     }
 

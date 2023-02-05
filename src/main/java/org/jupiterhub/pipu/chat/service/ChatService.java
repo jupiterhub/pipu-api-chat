@@ -1,46 +1,25 @@
 package org.jupiterhub.pipu.chat.service;
 
 import org.jupiterhub.pipu.chat.record.Chat;
+import org.jupiterhub.pipu.chat.record.Message;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.websocket.Session;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
-@ApplicationScoped
-public class ChatService implements IChatService {
-    private Map<String, Session> activeSessions = new ConcurrentHashMap<>();
+public interface ChatService {
 
-    @Override
-    public void openSession(String username, Session session) {
-        // only store to sesion if there are no exceptions
-        // TODO: DB Load top k previous messages (cached on frontend)
-        activeSessions.put(username, session);
-    }
+    List<Chat> getAllChats(int offset, int limit);
+    List<Chat> getChatsByUserId(String userId);
+    Chat saveChat(Chat chat);
+    Chat updateChat(Chat chat);
+    void deleteChat(int chatId);
 
-    @Override
-    public void closeSession(String username) {
-        activeSessions.remove(username);
-    }
+    Message saveMessage(int chatId, Message message);
+    Message updateMessage(int chatId, String messageId, String message);
+    Message deleteMessage(int chatId, String messageId);
+    Message markSent(int chatId, String messageId);
+    Message markDelivered(int chatId, String messageId);
+    Message markRead(int chatId, String messageId);
 
-    @Override
-    public void sendMessage(Chat chat) {
-        sendMessage(chat.to(), chat.message());
-    }
 
-    @Override
-    public void sendMessage(String to, String message) {
-        activeSessions.get(to).getAsyncRemote().sendText(message);
-    }
-
-    @Override
-    public boolean isActive(String username) {
-        return activeSessions.containsKey(username);
-    }
-
-    @Override
-    public Map<String, Session> getActiveSessions() {
-        return activeSessions;
-    }
-
+    List<Message> getMessagesByOffset(String chatId, int offset, int limit);
 }

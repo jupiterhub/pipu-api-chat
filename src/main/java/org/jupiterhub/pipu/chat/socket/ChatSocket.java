@@ -4,12 +4,12 @@ import io.quarkus.logging.Log;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jupiterhub.pipu.chat.record.Chat;
+import org.jupiterhub.pipu.chat.record.Message;
 import org.jupiterhub.pipu.chat.record.client.Directory;
-import org.jupiterhub.pipu.chat.service.ChatService;
 import org.jupiterhub.pipu.chat.service.client.ChatRestService;
 import org.jupiterhub.pipu.chat.service.client.DirectoryRestService;
 import org.jupiterhub.pipu.chat.util.EnvironmentUtil;
+import org.jupiterhub.pipu.chat.util.HashUtil;
 import org.jupiterhub.pipu.chat.util.JsonChatUtil;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 public class ChatSocket {
 
     @Inject
-    private ChatService chatService;
+    private MessageSocketSocketService messageSocketService;
 
     @ConfigProperty(name = "pipu.chat-api.uri")
     private String uri;
@@ -44,7 +44,7 @@ public class ChatSocket {
         Directory directory = new Directory(username, replacedUri);
         directoryRestService.register(directory)
                 .thenAccept(unused -> {
-                    chatService.openSession(username, session);
+                    messageSocketService.openSession(username, session);
                 })
                 .exceptionally(throwable -> {   // ORDER IS IMPORTANT. Exceptionally after thenAccept to ensure it doesn't run
                     Log.errorf("@onOpen. Failed to call directory service. Not registering %s. Cause: %s", directory, throwable.getMessage());
@@ -57,18 +57,18 @@ public class ChatSocket {
     @OnClose
     public void onClose(@PathParam("username") String username) {
         directoryRestService.delete(username);
-        chatService.closeSession(username);
+        messageSocketService.closeSession(username);
         broadcast("User " + username + " left");
     }
 
     @OnError
     public void onError(Session session, @PathParam("username") String username, Throwable throwable) {
         directoryRestService.delete(username);
-        chatService.closeSession(username);
+        messageSocketService.closeSession(username);
         broadcast("User " + username + " left on error: " + throwable);
     }
 
-    private Chat parseJson(String message) {
+    private Message parseJson(String message) {
         try {
             return JsonChatUtil.decode(message);
         } catch (DecodeException e) {
@@ -78,19 +78,19 @@ public class ChatSocket {
 
     @OnMessage
     public void onMessage(Session session, String message) {
-        Chat chat = parseJson(message);
-        if (chatService.isActive(chat.to())) {
+        Message chatThread = parseJson(message);
+        if (messageSocketService.isActive(chatThread.to())) {
             Log.info("Sending message locally");
-            chatService.sendMessage(chat.to(), chat.message());
-            chatService.sendMessage(chat.from(), chat.message());
+            messageSocketService.sendMessage(chatThread.to(), chatThread.message());
+            messageSocketService.sendMessage(chatThread.from(), chatThread.message());
         } else {
             Log.info("Sending message remotely");
             // not in this host, lookup and then send message
-            directoryRestService.lookup(chat.to())
-                    .thenAccept(sendRemoteMessage(chat))
-                    .thenAccept(unused -> chatService.sendMessage(chat.from(), chat.message()))   // send to self too
+            directoryRestService.lookup(chatThread.to())
+                    .thenAccept(sendRemoteMessage(chatThread))
+                    .thenAccept(unused -> messageSocketService.sendMessage(chatThread.from(), chatThread.message()))   // send to self too
                     .exceptionally(throwable -> {
-                        Log.errorf("@onMessage. Failed to call directory service. Not sending %s. Cause: %s", chat, throwable.getMessage());
+                        Log.errorf("@onMessage. Failed to call directory service. Not sending %s. Cause: %s", chatThread, throwable.getMessage());
                         return null;
                     });
         }
@@ -98,10 +98,10 @@ public class ChatSocket {
     }
 
 
-    private Consumer<Response> sendRemoteMessage(Chat chat) {
+    private Consumer<Response> sendRemoteMessage(Message message) {
         return response -> {
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                Log.infof("User %s not found in remote, not sending message.", chat.to());
+                Log.infof("User %s not found in remote, not sending message.", message.to());
                 return;
             }
 
@@ -110,15 +110,15 @@ public class ChatSocket {
                     .baseUri(URI.create(directory.host()))
                     .build(ChatRestService.class);
 
-            build.send(chat).exceptionally(throwable -> {
-                Log.errorf("@onMessage. Failed to send remote[%s] message %s. Cause: %s", directory.host(), chat, throwable.getMessage());
+            build.send(HashUtil.commutativeHash(message.from(), message.to()).toString(), message).exceptionally(throwable -> {
+                Log.errorf("@onMessage. Failed to send remote[%s] message %s. Cause: %s", directory.host(), message, throwable.getMessage());
                 return null;
             });
         };
     }
 
     private void broadcast(String message) {
-        chatService.getActiveSessions().values().forEach(s -> {
+        messageSocketService.getActiveSessions().values().forEach(s -> {
             s.getAsyncRemote().sendObject(message);
         });
     }

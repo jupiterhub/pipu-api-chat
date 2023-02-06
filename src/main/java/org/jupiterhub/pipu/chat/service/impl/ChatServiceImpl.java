@@ -1,6 +1,5 @@
 package org.jupiterhub.pipu.chat.service.impl;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jupiterhub.pipu.chat.record.Chat;
 import org.jupiterhub.pipu.chat.record.Message;
 import org.jupiterhub.pipu.chat.record.MessageTimestamp;
@@ -11,7 +10,6 @@ import org.jupiterhub.pipu.chat.util.KeyGenUtil;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Qualifier;
 import java.time.Instant;
 import java.util.List;
 
@@ -33,8 +31,10 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public List<Chat> getChatsWithUser(String userId) {
-        return chatRepository.getChatsWithUser(userId);
+    public List<Chat> getChatsByUserId(String userId) {
+        List<Chat> chatsByUserId = chatRepository.getChatsByUserId(userId);
+        System.out.println("result " + chatsByUserId);
+        return chatsByUserId;
     }
 
     @Override

@@ -69,11 +69,7 @@ public class ChatSocket {
     }
 
     private Message parseJson(String message) {
-        try {
-            return JsonChatUtil.decode(message);
-        } catch (DecodeException e) {
-            throw new RuntimeException(e);
-        }
+        return JsonChatUtil.decode(message);
     }
 
     @OnMessage

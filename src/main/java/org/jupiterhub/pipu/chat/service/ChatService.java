@@ -10,7 +10,7 @@ public interface ChatService {
 
     List<Chat> getAllChats(int offset, int limit);
     List<Chat> getChatsById(String userId);
-    List<Chat> getChatsWithUser(String userId);
+    List<Chat> getChatsByUserId(String userId);
     Chat saveChat(Chat chat);
     Chat updateChat(Chat chat);
     void deleteChat(String chatId);

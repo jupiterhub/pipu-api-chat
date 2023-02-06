@@ -1,7 +1,7 @@
 package org.jupiterhub.pipu.chat.resource;
 
-import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import org.jboss.resteasy.reactive.RestQuery;
 import org.jupiterhub.pipu.chat.record.Chat;
 import org.jupiterhub.pipu.chat.record.Message;
 import org.jupiterhub.pipu.chat.service.ChatService;
@@ -28,22 +28,17 @@ public class ChatResource {
         return chatService.saveChat(chat);
     }
 
+    @GET
+    public List<Chat> lookup(String chatId, @RestQuery("u") String username) {
+        return chatService.getChatsByUserId(username);
+    }
+
     @Path("/{chatId}")
     @POST
     public void send(Message message) {
         messageSocketService.sendMessage(message);
     }
 
-    @GET
-    public Multi<List<Message>> allChat() {
-        throw new UnsupportedOperationException();
-    }
-
-    @GET
-    @Path("/{id}")
-    public Uni<Message> lookup(String id) {
-        throw new UnsupportedOperationException();
-    }
 
     @DELETE
     @Path("/{id}")

@@ -35,6 +35,9 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public Chat saveChat(Chat chat) {
+        if (chat.id() == null) {
+
+        }
         return chatRepository.saveChat(chat);
     }
 

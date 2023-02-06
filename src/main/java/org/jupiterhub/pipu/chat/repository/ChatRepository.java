@@ -11,14 +11,14 @@ public interface ChatRepository {
     List<Chat> getChatsById(String userId);
     List<Chat> getChatsWithUser(String userId);
     Chat saveChat(Chat chat);
-    void deleteChat(int chatId);
+    void deleteChat(String chatId);
 
-    Message saveMessage(int chatId, Message message);
-    Message updateMessage(int chatId, String messageId, String message);
-    Message deleteMessage(int chatId, String messageId);
-    MessageTimestamp markSent(int chatId, String messageId);
-    MessageTimestamp markDelivered(int chatId, String messageId);
-    MessageTimestamp markRead(int chatId, String messageId);
+    Message saveMessage(String chatId, Message message);
+    Message updateMessage(String chatId, String messageId, String message);
+    Message deleteMessage(String chatId, String messageId);
+    MessageTimestamp markSent(String chatId, String messageId);
+    MessageTimestamp markDelivered(String chatId, String messageId);
+    MessageTimestamp markRead(String chatId, String messageId);
 
     List<Message> getMessagesByOffset(String chatId, int offset, int limit);
 }

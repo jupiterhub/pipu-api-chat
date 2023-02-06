@@ -9,8 +9,8 @@ import org.jupiterhub.pipu.chat.record.client.Directory;
 import org.jupiterhub.pipu.chat.service.client.ChatRestService;
 import org.jupiterhub.pipu.chat.service.client.DirectoryRestService;
 import org.jupiterhub.pipu.chat.util.EnvironmentUtil;
-import org.jupiterhub.pipu.chat.util.HashUtil;
 import org.jupiterhub.pipu.chat.util.JsonChatUtil;
+import org.jupiterhub.pipu.chat.util.KeyGenUtil;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -110,7 +110,7 @@ public class ChatSocket {
                     .baseUri(URI.create(directory.host()))
                     .build(ChatRestService.class);
 
-            build.send(HashUtil.commutativeHash(message.from(), message.to()).toString(), message).exceptionally(throwable -> {
+            build.send(KeyGenUtil.commutativeKey(message.from(), message.to()).toString(), message).exceptionally(throwable -> {
                 Log.errorf("@onMessage. Failed to send remote[%s] message %s. Cause: %s", directory.host(), message, throwable.getMessage());
                 return null;
             });

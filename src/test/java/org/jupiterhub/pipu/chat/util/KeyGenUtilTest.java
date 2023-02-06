@@ -1,9 +1,9 @@
 package org.jupiterhub.pipu.chat.util;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.jupiterhub.pipu.chat.exception.GenerateKeyException;
-import org.wildfly.common.Assert;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,10 +17,8 @@ class KeyGenUtilTest {
         String user2 = "mike";
 
         // When
-        String hash1 = KeyGenUtil.generateKey(user1, user2);
-        System.out.println(hash1);
-        String hash2 = KeyGenUtil.generateKey(user2, user1);
-        System.out.println(hash2);
+        String hash1 = KeyGenUtil.commutativeKey(user1, user2);
+        String hash2 = KeyGenUtil.commutativeKey(user2, user1);
 
         // Then
         assertEquals("jupiter-mike", hash1);
@@ -30,18 +28,33 @@ class KeyGenUtilTest {
     void throwExceptionIfParamIsNull() {
         // Given / When
         GenerateKeyException thrownFirstMissing = assertThrows(GenerateKeyException.class, () -> {
-            KeyGenUtil.generateKey(null, "jup");
+            KeyGenUtil.commutativeKey(null, "jup");
         });
         GenerateKeyException thrownSecondMissing = assertThrows(GenerateKeyException.class, () -> {
-            KeyGenUtil.generateKey("jup", null);
+            KeyGenUtil.commutativeKey("jup", null);
         });
         GenerateKeyException thrownBothMissing = assertThrows(GenerateKeyException.class, () -> {
-            KeyGenUtil.generateKey( null, null);
+            KeyGenUtil.commutativeKey( null, null);
         });
 
         // Then
         assertEquals("Both parameters are required to generate key.", thrownFirstMissing.getMessage());
         assertEquals("Both parameters are required to generate key.", thrownSecondMissing.getMessage());
         assertEquals("Both parameters are required to generate key.", thrownBothMissing.getMessage());
+    }
+
+    @Test
+    void createChatId() {
+        // Given
+        String user1 = "jupiter";
+        String user2 = "mike";
+
+        // When
+        String hash1 = KeyGenUtil.createChatId(List.of(user1, user2));
+        String hash2 = KeyGenUtil.createChatId(List.of(user2, user1));
+
+        // Then
+        assertEquals("jupiter-mike", hash1);
+        assertEquals("jupiter-mike", hash2);
     }
 }

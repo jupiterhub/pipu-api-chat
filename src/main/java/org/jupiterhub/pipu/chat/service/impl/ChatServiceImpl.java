@@ -5,6 +5,7 @@ import org.jupiterhub.pipu.chat.record.Message;
 import org.jupiterhub.pipu.chat.record.MessageTimestamp;
 import org.jupiterhub.pipu.chat.repository.ChatRepository;
 import org.jupiterhub.pipu.chat.service.ChatService;
+import org.jupiterhub.pipu.chat.util.KeyGenUtil;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -36,7 +37,7 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public Chat saveChat(Chat chat) {
         if (chat.id() == null) {
-
+            chat = new Chat(KeyGenUtil.createChatId(chat.people()), chat.people(), chat.messages());
         }
         return chatRepository.saveChat(chat);
     }
@@ -50,37 +51,37 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public void deleteChat(int chatId) {
+    public void deleteChat(String chatId) {
         chatRepository.deleteChat(chatId);
     }
 
     @Override
-    public Message saveMessage(int chatId, Message message) {
+    public Message saveMessage(String chatId, Message message) {
         return chatRepository.saveMessage(chatId, message);
     }
 
     @Override
-    public Message updateMessage(int chatId, String messageId, String message) {
+    public Message updateMessage(String chatId, String messageId, String message) {
         return chatRepository.updateMessage(chatId, messageId, message);
     }
 
     @Override
-    public Message deleteMessage(int chatId, String messageId) {
+    public Message deleteMessage(String chatId, String messageId) {
         return chatRepository.deleteMessage(chatId, messageId);
     }
 
     @Override
-    public MessageTimestamp markSent(int chatId, String messageId) {
+    public MessageTimestamp markSent(String chatId, String messageId) {
         return chatRepository.markSent(chatId, messageId);
     }
 
     @Override
-    public MessageTimestamp markDelivered(int chatId, String messageId) {
+    public MessageTimestamp markDelivered(String chatId, String messageId) {
         return chatRepository.markDelivered(chatId, messageId);
     }
 
     @Override
-    public MessageTimestamp markRead(int chatId, String messageId) {
+    public MessageTimestamp markRead(String chatId, String messageId) {
         return chatRepository.markRead(chatId, messageId);
     }
 

@@ -2,7 +2,9 @@ package org.jupiterhub.pipu.chat.resource;
 
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import org.jupiterhub.pipu.chat.record.Chat;
 import org.jupiterhub.pipu.chat.record.Message;
+import org.jupiterhub.pipu.chat.service.ChatService;
 import org.jupiterhub.pipu.chat.socket.MessageSocketSocketService;
 
 import javax.inject.Inject;
@@ -18,6 +20,15 @@ public class ChatResource {
     @Inject
     MessageSocketSocketService messageSocketService;
 
+    @Inject
+    ChatService chatService;
+
+    @POST
+    public Chat createChat(Chat chat) {
+        return chatService.saveChat(chat);
+    }
+
+    @Path("/{chatId}")
     @POST
     public void send(Message message) {
         messageSocketService.sendMessage(message);

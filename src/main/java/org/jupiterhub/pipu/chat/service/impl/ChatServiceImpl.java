@@ -12,6 +12,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Qualifier;
+import java.time.Instant;
 import java.util.List;
 
 @ApplicationScoped
@@ -39,7 +40,8 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public Chat saveChat(Chat chat) {
         if (chat.id() == null) {
-            chat = new Chat(KeyGenUtil.createChatId(chat.people()), chat.people(), chat.messages());
+            chat = new Chat(KeyGenUtil.createChatId(chat.people()), chat.people(), chat.messages(),
+                    Instant.now().toEpochMilli());
         }
         return chatRepository.saveChat(chat);
     }

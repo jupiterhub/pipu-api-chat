@@ -11,6 +11,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 @Named(ChatRepository.FIRESTORE_IMPL)
@@ -34,10 +35,20 @@ public class ChatRepositoryFirestore implements ChatRepository {
         return null;
     }
 
+    /**
+     * Java records doesn't conform to POJO so it's unable to find it
+     * Manually map, as this allows us to do without reflections too
+     */
     @Override
     public Chat saveChat(Chat chat) {
         CollectionReference chats = firestore.collection("chats");
-        chats.add(chat); // Future
+        chats.document(chat.id()).create(
+                Map.of(
+                Chat.FIELD_ID, chat.id(),
+                Chat.FIELD_MESSAGES, chat.messages(),
+                Chat.FIELD_PEOPLE, chat.people(),
+                Chat.FIELD_CREATED, chat.created()
+                )); // Future
         return chat;
     }
 

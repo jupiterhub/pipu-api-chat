@@ -26,13 +26,13 @@ import java.util.function.Consumer;
 public class ChatSocket {
 
     @Inject
-    private MessageSocketSocketService messageSocketService;
+    MessageSocketSocketService messageSocketService;
 
     @ConfigProperty(name = "pipu.chat-api.uri")
-    private String uri;
+    String uri;
 
     @RestClient
-    private DirectoryRestService directoryRestService;
+    DirectoryRestService directoryRestService;
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username) {

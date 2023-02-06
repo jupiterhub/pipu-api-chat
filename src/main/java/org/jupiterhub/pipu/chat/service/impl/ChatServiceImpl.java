@@ -1,5 +1,6 @@
 package org.jupiterhub.pipu.chat.service.impl;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jupiterhub.pipu.chat.record.Chat;
 import org.jupiterhub.pipu.chat.record.Message;
 import org.jupiterhub.pipu.chat.record.MessageTimestamp;
@@ -10,14 +11,15 @@ import org.jupiterhub.pipu.chat.util.KeyGenUtil;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Qualifier;
 import java.util.List;
 
 @ApplicationScoped
 public class ChatServiceImpl implements ChatService {
 
     @Inject
-    @Named("firebaseChatRepository")
-    private ChatRepository chatRepository;
+    @Named(ChatRepository.FIRESTORE_IMPL)
+    ChatRepository chatRepository;
 
     @Override
     public List<Chat> getAllChats(int offset, int limit) {

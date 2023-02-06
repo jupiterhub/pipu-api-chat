@@ -7,6 +7,9 @@ import org.jupiterhub.pipu.chat.record.MessageTimestamp;
 import java.util.List;
 
 public interface ChatRepository {
+    static final String FIRESTORE_IMPL = "chatRepositoryFirestore";
+    static final String CASSANDRA_IMPL = "chatRepositoryCassandra";
+
     List<Chat> getAllChats(int offset, int limit);
     List<Chat> getChatsById(String userId);
     List<Chat> getChatsWithUser(String userId);

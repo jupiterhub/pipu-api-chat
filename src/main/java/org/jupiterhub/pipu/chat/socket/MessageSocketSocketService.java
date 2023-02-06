@@ -1,8 +1,11 @@
 package org.jupiterhub.pipu.chat.socket;
 
+import org.jupiterhub.pipu.chat.record.Chat;
 import org.jupiterhub.pipu.chat.record.Message;
+import org.jupiterhub.pipu.chat.service.ChatService;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.websocket.Session;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

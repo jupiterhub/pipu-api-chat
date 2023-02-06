@@ -15,7 +15,7 @@ import java.util.concurrent.CompletionStage;
 public class DirectoryResource {
 
     @RestClient
-    private DirectoryRestService directoryRestService;
+    DirectoryRestService directoryRestService;
 
     @GET
     @Path("/{key}")

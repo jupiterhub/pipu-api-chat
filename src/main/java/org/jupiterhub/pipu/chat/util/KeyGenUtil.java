@@ -2,7 +2,9 @@ package org.jupiterhub.pipu.chat.util;
 
 import org.jupiterhub.pipu.chat.exception.ChatIdCreationException;
 import org.jupiterhub.pipu.chat.exception.GenerateKeyException;
+import org.jupiterhub.pipu.chat.record.Message;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
@@ -31,5 +33,9 @@ public class KeyGenUtil {
         }
 
         return  KeyGenUtil.commutativeKey(people.get(0), people.get(1));
+    }
+
+    public static String createMessageId(Message message) {
+        return message.from() + "-" + message.to() + "-" + Instant.now().toEpochMilli();
     }
 }

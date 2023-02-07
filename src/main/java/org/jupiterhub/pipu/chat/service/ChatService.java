@@ -14,14 +14,4 @@ public interface ChatService {
     Chat saveChat(Chat chat);
     Chat updateChat(Chat chat);
     void deleteChat(String chatId);
-
-    Message saveMessage(String chatId, Message message);
-    Message updateMessage(String chatId, String messageId, String message);
-    Message deleteMessage(String chatId, String messageId);
-    MessageTimestamp markSent(String chatId, String messageId);
-    MessageTimestamp markDelivered(String chatId, String messageId);
-    MessageTimestamp markRead(String chatId, String messageId);
-
-
-    List<Message> getMessagesByOffset(String chatId, int offset, int limit);
 }

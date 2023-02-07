@@ -3,9 +3,7 @@ package org.jupiterhub.pipu.chat.repository.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.CollectionReference;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.QuerySnapshot;
+import com.google.cloud.firestore.*;
 import org.jupiterhub.pipu.chat.constant.ChatApiErrorCode;
 import org.jupiterhub.pipu.chat.exception.ChatRepositoryException;
 import org.jupiterhub.pipu.chat.record.Chat;
@@ -28,6 +26,7 @@ import java.util.concurrent.TimeoutException;
 public class ChatRepositoryFirestore implements ChatRepository {
 
     public static final String CHATS_COLLECTION = "chats";
+    public static final int MAX_QUERY_TIME_IN_SEC = 5;
     @Inject
     Firestore firestore;
 
@@ -42,7 +41,7 @@ public class ChatRepositoryFirestore implements ChatRepository {
     @Override
     public Chat getChatsById(String chatId) {
         try {
-            return convertToChatObject(firestore.collection(CHATS_COLLECTION).document(chatId).get().get(5, TimeUnit.SECONDS).getData(),
+            return convertToChatObject(firestore.collection(CHATS_COLLECTION).document(chatId).get().get(MAX_QUERY_TIME_IN_SEC, TimeUnit.SECONDS).getData(),
                     "Unable to parse json from Firestore. ",
                     ChatApiErrorCode.REPOSITORY_GET_CHAT_BY_ID_INVALID_JSON);
         } catch (InterruptedException e) {
@@ -68,7 +67,7 @@ public class ChatRepositoryFirestore implements ChatRepository {
         ApiFuture<QuerySnapshot> querySnapshot = chatsRef.whereArrayContains(Chat.FIELD_PEOPLE, userId).get();
 
         try {
-            return querySnapshot.get(5, TimeUnit.SECONDS).getDocuments().stream()
+            return querySnapshot.get(MAX_QUERY_TIME_IN_SEC, TimeUnit.SECONDS).getDocuments().stream()
                     .map(document -> convertToChatObject(
                             document.getData(), "Unable to parse json from Firestore. ",
                             ChatApiErrorCode.REPOSITORY_GET_CHAT_BY_USERID_INVALID_JSON))
@@ -91,10 +90,10 @@ public class ChatRepositoryFirestore implements ChatRepository {
         CollectionReference chats = firestore.collection(ChatRepositoryFirestore.CHATS_COLLECTION);
         chats.document(chat.id()).create(
                 Map.of(
-                Chat.FIELD_ID, chat.id(),
-                Chat.FIELD_MESSAGES, chat.messages(),
-                Chat.FIELD_PEOPLE, chat.people(),
-                Chat.FIELD_CREATED, chat.created()
+                        Chat.FIELD_ID, chat.id(),
+                        Chat.FIELD_MESSAGES, chat.messages(),
+                        Chat.FIELD_PEOPLE, chat.people(),
+                        Chat.FIELD_CREATED, chat.created()
                 )); // Future
         return chat;
     }
@@ -106,6 +105,22 @@ public class ChatRepositoryFirestore implements ChatRepository {
 
     @Override
     public Message saveMessage(String chatId, Message message) {
+        ApiFuture<WriteResult> update = firestore.collection(CHATS_COLLECTION).document(chatId).update(Chat.FIELD_MESSAGES,
+                FieldValue.arrayUnion(Map.of("message", message.message(),
+                        "to", message.to(),
+                        "id", message.id(),
+                        "from", message.from(),
+                        "timestamp", Map.of("sent", message.timestamp().sent()
+                        ))));
+        try {
+            update.get(MAX_QUERY_TIME_IN_SEC, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new ChatRepositoryException("Interrupted while getting chats. " + e.getMessage(), ChatApiErrorCode.REPOSITORY_SAVE_MESSAGE);
+        } catch (ExecutionException e) {
+            throw new ChatRepositoryException("Execution failed while getting chats. " + e.getMessage(), ChatApiErrorCode.REPOSITORY_SAVE_MESSAGE);
+        } catch (TimeoutException e) {
+            throw new ChatRepositoryException("Timeout. 5 seconds passed to get chats. " + e.getMessage(), ChatApiErrorCode.REPOSITORY_SAVE_MESSAGE_TIMEOUT);
+        }
         return null;
     }
 

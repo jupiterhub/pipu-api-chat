@@ -3,6 +3,7 @@ package org.jupiterhub.pipu.chat.socket;
 import io.quarkus.logging.Log;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
+import org.eclipse.microprofile.rest.client.ext.QueryParamStyle;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jupiterhub.pipu.chat.record.Message;
 import org.jupiterhub.pipu.chat.record.client.Directory;

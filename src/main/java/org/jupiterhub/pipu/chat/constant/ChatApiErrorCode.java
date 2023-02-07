@@ -8,6 +8,9 @@ public enum ChatApiErrorCode {
     REPOSITORY_GET_CHAT_BY_ID("rgcbid"),
     REPOSITORY_GET_CHAT_BY_ID_INVALID_JSON("rgcbid_ij"),
     REPOSITORY_GET_CHAT_BY_ID_TIMEOUT("rgcbid_to"),
+
+    REPOSITORY_SAVE_MESSAGE("rsm"),
+    REPOSITORY_SAVE_MESSAGE_TIMEOUT("rsm_to"),
     ;
 
     String code;

@@ -33,7 +33,10 @@ public class MessageSocketSocketService implements IMessageSocketService {
 
     @Override
     public void sendMessage(String to, String message) {
-        activeSessions.get(to).getAsyncRemote().sendText(message);
+        Session session = activeSessions.get(to);
+        if (session != null) {
+            session.getAsyncRemote().sendText(message);
+        }
     }
 
     @Override

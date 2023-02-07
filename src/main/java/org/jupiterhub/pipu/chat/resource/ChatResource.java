@@ -18,9 +18,6 @@ import java.util.List;
 public class ChatResource {
 
     @Inject
-    MessageSocketSocketService messageSocketService;
-
-    @Inject
     ChatService chatService;
 
     @POST
@@ -34,27 +31,14 @@ public class ChatResource {
     }
 
     @Path("/{chatId}")
-    @DELETE
-    public void delete(String chatId) {
-        chatService.deleteChat(chatId);
-    }
-    @Path("/{chatId}")
     @GET
     public Chat getChat(String chatId) {
         return chatService.getChatById(chatId);
     }
-
     @Path("/{chatId}")
-    @POST
-    public void send(Message message) {
-        messageSocketService.sendMessage(message);
-    }
-
-
-    @PUT
-    @Path("/{id}")
-    public Uni<Message> update(Message message) {
-        throw new UnsupportedOperationException();
+    @DELETE
+    public void delete(String chatId) {
+        chatService.deleteChat(chatId);
     }
 
 }

@@ -33,18 +33,19 @@ public class ChatResource {
         return chatService.getChatsByUserId(username);
     }
 
+
+    @DELETE
+    @Path("/{chatId}")
+    public void delete(String chatId) {
+        chatService.deleteChat(chatId);
+    }
+
     @Path("/{chatId}")
     @POST
     public void send(Message message) {
         messageSocketService.sendMessage(message);
     }
 
-
-    @DELETE
-    @Path("/{id}")
-    public void delete(String id) {
-        throw new UnsupportedOperationException();
-    }
 
     @PUT
     @Path("/{id}")

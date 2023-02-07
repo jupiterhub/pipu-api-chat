@@ -3,12 +3,10 @@ package org.jupiterhub.pipu.chat.repository.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.core.ApiFuture;
-import com.google.api.core.ApiFutures;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.Query;
 import com.google.cloud.firestore.QuerySnapshot;
-import io.quarkus.logging.Log;
+import com.google.cloud.firestore.WriteResult;
 import org.jupiterhub.pipu.chat.constant.ChatApiErrorCode;
 import org.jupiterhub.pipu.chat.exception.ChatRepositoryException;
 import org.jupiterhub.pipu.chat.record.Chat;
@@ -23,13 +21,12 @@ import javax.inject.Named;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 @Named(ChatRepository.FIRESTORE_IMPL)
 public class ChatRepositoryFirestore implements ChatRepository {
 
-    public static final String COLLECTION_NAME = "chats";
+    public static final String CHATS_COLLECTION = "chats";
     @Inject
     Firestore firestore;
 
@@ -48,7 +45,7 @@ public class ChatRepositoryFirestore implements ChatRepository {
 
     @Override
     public List<Chat> getChatsByUserId(String userId) {
-        CollectionReference chatsRef = firestore.collection(COLLECTION_NAME);
+        CollectionReference chatsRef = firestore.collection(CHATS_COLLECTION);
         ApiFuture<QuerySnapshot> querySnapshot = chatsRef.whereArrayContains(Chat.FIELD_PEOPLE, userId).get();
 
         try {
@@ -75,7 +72,7 @@ public class ChatRepositoryFirestore implements ChatRepository {
      */
     @Override
     public Chat saveChat(Chat chat) {
-        CollectionReference chats = firestore.collection(ChatRepositoryFirestore.COLLECTION_NAME);
+        CollectionReference chats = firestore.collection(ChatRepositoryFirestore.CHATS_COLLECTION);
         chats.document(chat.id()).create(
                 Map.of(
                 Chat.FIELD_ID, chat.id(),
@@ -88,7 +85,7 @@ public class ChatRepositoryFirestore implements ChatRepository {
 
     @Override
     public void deleteChat(String chatId) {
-
+        firestore.collection(CHATS_COLLECTION).document(chatId).delete();
     }
 
     @Override

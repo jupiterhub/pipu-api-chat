@@ -11,7 +11,7 @@ public interface ChatRepository {
     static final String CASSANDRA_IMPL = "chatRepositoryCassandra";
 
     List<Chat> getAllChats(int offset, int limit);
-    List<Chat> getChatsById(String userId);
+    Chat getChatsById(String userId);
     List<Chat> getChatsByUserId(String userId);
     Chat saveChat(Chat chat);
     void deleteChat(String chatId);

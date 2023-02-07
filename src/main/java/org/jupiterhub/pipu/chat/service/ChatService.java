@@ -9,7 +9,7 @@ import java.util.List;
 public interface ChatService {
 
     List<Chat> getAllChats(int offset, int limit);
-    List<Chat> getChatsById(String userId);
+    Chat getChatById(String chatId);
     List<Chat> getChatsByUserId(String userId);
     Chat saveChat(Chat chat);
     Chat updateChat(Chat chat);

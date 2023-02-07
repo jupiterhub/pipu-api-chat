@@ -26,15 +26,13 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public List<Chat> getChatsById(String chatId) {
+    public Chat getChatById(String chatId) {
         return chatRepository.getChatsById(chatId);
     }
 
     @Override
     public List<Chat> getChatsByUserId(String userId) {
-        List<Chat> chatsByUserId = chatRepository.getChatsByUserId(userId);
-        System.out.println("result " + chatsByUserId);
-        return chatsByUserId;
+        return chatRepository.getChatsByUserId(userId);
     }
 
     @Override

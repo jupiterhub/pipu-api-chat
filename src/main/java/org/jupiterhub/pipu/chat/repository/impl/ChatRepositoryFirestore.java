@@ -6,7 +6,6 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QuerySnapshot;
-import com.google.cloud.firestore.WriteResult;
 import org.jupiterhub.pipu.chat.constant.ChatApiErrorCode;
 import org.jupiterhub.pipu.chat.exception.ChatRepositoryException;
 import org.jupiterhub.pipu.chat.record.Chat;
@@ -21,6 +20,8 @@ import javax.inject.Named;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @ApplicationScoped
 @Named(ChatRepository.FIRESTORE_IMPL)
@@ -39,8 +40,26 @@ public class ChatRepositoryFirestore implements ChatRepository {
     }
 
     @Override
-    public List<Chat> getChatsById(String userId) {
-        return null;
+    public Chat getChatsById(String chatId) {
+        try {
+            return convertToChatObject(firestore.collection(CHATS_COLLECTION).document(chatId).get().get(5, TimeUnit.SECONDS).getData(),
+                    "Unable to parse json from Firestore. ",
+                    ChatApiErrorCode.REPOSITORY_GET_CHAT_BY_ID_INVALID_JSON);
+        } catch (InterruptedException e) {
+            throw new ChatRepositoryException("Interrupted while getting chats. " + e.getMessage(), ChatApiErrorCode.REPOSITORY_GET_CHAT_BY_ID);
+        } catch (ExecutionException e) {
+            throw new ChatRepositoryException("Execution failed while getting chats. " + e.getMessage(), ChatApiErrorCode.REPOSITORY_GET_CHAT_BY_ID);
+        } catch (TimeoutException e) {
+            throw new ChatRepositoryException("Timeout. 5 seconds passed to get chats. " + e.getMessage(), ChatApiErrorCode.REPOSITORY_GET_CHAT_BY_ID_TIMEOUT);
+        }
+    }
+
+    private Chat convertToChatObject(Map<String, Object> data, String jsonParseExceptionMessage, ChatApiErrorCode jsonParseExceptionCode) {
+        try {
+            return JsonChatUtil.decodeChat(objectMapper.writeValueAsString(data));
+        } catch (JsonProcessingException e) {
+            throw new ChatRepositoryException(jsonParseExceptionMessage + e.getMessage(), jsonParseExceptionCode);
+        }
     }
 
     @Override
@@ -49,20 +68,17 @@ public class ChatRepositoryFirestore implements ChatRepository {
         ApiFuture<QuerySnapshot> querySnapshot = chatsRef.whereArrayContains(Chat.FIELD_PEOPLE, userId).get();
 
         try {
-            return querySnapshot.get().getDocuments().stream()
-                    .map(document -> {
-                        try {
-                            return JsonChatUtil.decodeChat(
-                                    objectMapper.writeValueAsString(document.getData()));
-                        } catch (JsonProcessingException e) {
-                            throw new ChatRepositoryException("@getChatsByUserId. Unable to parse json from Firestore. " + e.getMessage(), ChatApiErrorCode.REPOSITORY_GET_CHAT_BY_USERID_INVALID_JSON);
-                        }
-                    })
+            return querySnapshot.get(5, TimeUnit.SECONDS).getDocuments().stream()
+                    .map(document -> convertToChatObject(
+                            document.getData(), "Unable to parse json from Firestore. ",
+                            ChatApiErrorCode.REPOSITORY_GET_CHAT_BY_USERID_INVALID_JSON))
                     .toList();
         } catch (InterruptedException e) {
             throw new ChatRepositoryException("Interrupted while getting chats. " + e.getMessage(), ChatApiErrorCode.REPOSITORY_GET_CHAT_BY_USERID);
         } catch (ExecutionException e) {
             throw new ChatRepositoryException("Execution failed while getting chats. " + e.getMessage(), ChatApiErrorCode.REPOSITORY_GET_CHAT_BY_USERID);
+        } catch (TimeoutException e) {
+            throw new ChatRepositoryException("Timeout. 5 seconds passed to get chats. " + e.getMessage(), ChatApiErrorCode.REPOSITORY_GET_CHAT_BY_USERID_TIMEOUT);
         }
     }
 

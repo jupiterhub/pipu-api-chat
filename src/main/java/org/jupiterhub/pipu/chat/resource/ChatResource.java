@@ -29,15 +29,19 @@ public class ChatResource {
     }
 
     @GET
-    public List<Chat> lookup(String chatId, @RestQuery("u") String username) {
+    public List<Chat> getUserChats(@RestQuery("u") String username) {
         return chatService.getChatsByUserId(username);
     }
 
-
-    @DELETE
     @Path("/{chatId}")
+    @DELETE
     public void delete(String chatId) {
         chatService.deleteChat(chatId);
+    }
+    @Path("/{chatId}")
+    @GET
+    public Chat getChat(String chatId) {
+        return chatService.getChatById(chatId);
     }
 
     @Path("/{chatId}")

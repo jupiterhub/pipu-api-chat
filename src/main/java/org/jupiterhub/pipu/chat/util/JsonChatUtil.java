@@ -11,7 +11,6 @@ import javax.json.JsonValue;
 import javax.websocket.EncodeException;
 import java.io.StringReader;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class JsonChatUtil {
     public static Message decode(String json) {

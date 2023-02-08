@@ -19,7 +19,7 @@ public interface ChatRepository {
     Message saveMessage(String chatId, Message message);
     Message getMessage(String chatId, String messageId);
     Message updateMessage(String chatId, String messageId, String message);
-    Message deleteMessage(String chatId, String messageId);
+    void deleteMessage(String chatId, String messageId);
     MessageTimestamp markSent(String chatId, String messageId);
     MessageTimestamp markDelivered(String chatId, String messageId);
     MessageTimestamp markRead(String chatId, String messageId);

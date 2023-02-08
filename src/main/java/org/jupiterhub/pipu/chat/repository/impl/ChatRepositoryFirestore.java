@@ -106,11 +106,12 @@ public class ChatRepositoryFirestore implements ChatRepository {
     @Override
     public Message saveMessage(String chatId, Message message) {
         ApiFuture<WriteResult> update = firestore.collection(CHATS_COLLECTION).document(chatId).update(Chat.FIELD_MESSAGES,
-                FieldValue.arrayUnion(Map.of("message", message.message(),
-                        "to", message.to(),
-                        "id", message.id(),
-                        "from", message.from(),
-                        "timestamp", Map.of("sent", message.timestamp().sent()
+                FieldValue.arrayUnion(Map.of(
+                        Message.FIELD_MESSAGE, message.message(),
+                        Message.FIELD_TO, message.to(),
+                        Message.FIELD_ID, message.id(),
+                        Message.FIELD_FROM, message.from(),
+                        Message.FIELD_TIMESTAMP, Map.of(MessageTimestamp.FIELD_SENT, message.timestamp().sent()
                         ))));
         try {
             update.get(MAX_QUERY_TIME_IN_SEC, TimeUnit.SECONDS);
@@ -135,12 +136,24 @@ public class ChatRepositoryFirestore implements ChatRepository {
 
     @Override
     public Message updateMessage(String chatId, String messageId, String message) {
-        return null;
+        throw new UnsupportedOperationException("Updating specific message is not supported in Firestore. Please delete/create.");
     }
 
     @Override
-    public Message deleteMessage(String chatId, String messageId) {
-        return null;
+    public void deleteMessage(String chatId, String messageId) {
+        Chat chatsById = getChatsById(chatId);
+        Message message = chatsById.messages().stream()
+                .filter(m -> m.id().equals(messageId)).findFirst()
+                .orElseThrow(() -> new RuntimeException("Message ID does not exist " + messageId));
+        firestore.collection(CHATS_COLLECTION).document(chatId).update(Chat.FIELD_MESSAGES,
+                FieldValue.arrayRemove(Map.of(
+                        Message.FIELD_MESSAGE, message.message(),
+                        Message.FIELD_TO, message.to(),
+                        Message.FIELD_ID, message.id(),
+                        Message.FIELD_FROM, message.from(),
+                        Message.FIELD_TIMESTAMP, Map.of(MessageTimestamp.FIELD_SENT, message.timestamp().sent()))
+                )
+        );
     }
 
     @Override

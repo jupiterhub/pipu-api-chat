@@ -10,7 +10,6 @@ import org.jupiterhub.pipu.chat.util.KeyGenUtil;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.List;
-import java.util.Optional;
 
 @ApplicationScoped
 public class MessageServiceImpl implements MessageService {
@@ -39,8 +38,8 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public Message deleteMessage(String chatId, String messageId) {
-        return chatRepository.deleteMessage(chatId, messageId);
+    public void deleteMessage(String chatId, String messageId) {
+        chatRepository.deleteMessage(chatId, messageId);
     }
 
     @Override

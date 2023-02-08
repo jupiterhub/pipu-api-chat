@@ -19,8 +19,6 @@ public class MessageResource {
 
     @POST
     public Message create(String chatId, Message message) {
-        System.out.println("## SEND MESSAGE " + message);
-        System.out.println("## SEND MESSAGE " + chatId);
         return messageService.sendMessage(chatId, message);
     }
 
@@ -31,20 +29,20 @@ public class MessageResource {
 
     @GET
     @Path("/{messageId}")
-    public Message getMessage(Message message) {
-        throw new UnsupportedOperationException();
+    public Message getMessage(String chatId, String messageId) {
+        return messageService.getMessage(chatId, messageId);
     }
 
     @PUT
     @Path("/{messageId}")
-    public Message updateMessage(Message message) {
-        throw new UnsupportedOperationException();
+    public Message updateMessage(String chatId, String messageId, Message message) {
+        return messageService.updateMessage(chatId, messageId, message.message());
     }
 
     @DELETE
     @Path("/{messageId}")
-    public Message deleteMessage(Message message) {
-        throw new UnsupportedOperationException();
+    public void deleteMessage(String chatId, String messageId) {
+        messageService.deleteMessage(chatId, messageId);
     }
 
     @PUT

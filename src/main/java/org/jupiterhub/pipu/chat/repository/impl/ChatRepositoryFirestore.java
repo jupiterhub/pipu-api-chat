@@ -125,6 +125,15 @@ public class ChatRepositoryFirestore implements ChatRepository {
     }
 
     @Override
+    public Message getMessage(String chatId, String messageId) {
+        return getChatsById(chatId)
+                .messages()
+                .stream()
+                .filter(m -> m.id().equals(messageId))
+                .findFirst().orElse(null);
+    }
+
+    @Override
     public Message updateMessage(String chatId, String messageId, String message) {
         return null;
     }

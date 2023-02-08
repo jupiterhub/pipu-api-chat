@@ -17,6 +17,7 @@ public interface ChatRepository {
     void deleteChat(String chatId);
 
     Message saveMessage(String chatId, Message message);
+    Message getMessage(String chatId, String messageId);
     Message updateMessage(String chatId, String messageId, String message);
     Message deleteMessage(String chatId, String messageId);
     MessageTimestamp markSent(String chatId, String messageId);

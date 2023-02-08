@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface MessageService {
 
+    Message getMessage(String chatId, String messageId);
     Message sendMessage(String chatId, Message message);
     Message updateMessage(String chatId, String messageId, String message);
     Message deleteMessage(String chatId, String messageId);

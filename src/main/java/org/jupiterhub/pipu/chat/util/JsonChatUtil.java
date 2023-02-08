@@ -65,8 +65,8 @@ public class JsonChatUtil {
                     jsonObject.getString(Message.FIELD_TO),
                     new MessageTimestamp(
                             timestamp.getJsonNumber(MessageTimestamp.FIELD_SENT).longValue(),
-                            timestamp.getJsonNumber(MessageTimestamp.FIELD_DELIVERED).longValue(),
-                            timestamp.getJsonNumber(MessageTimestamp.FIELD_READ).longValue()
+                            timestamp.getJsonNumber(MessageTimestamp.FIELD_DELIVERED) != null ? timestamp.getJsonNumber(MessageTimestamp.FIELD_DELIVERED).longValue() : null,
+                            timestamp.getJsonNumber(MessageTimestamp.FIELD_READ) != null ? timestamp.getJsonNumber(MessageTimestamp.FIELD_READ).longValue() : null
                             )
                     );
         };

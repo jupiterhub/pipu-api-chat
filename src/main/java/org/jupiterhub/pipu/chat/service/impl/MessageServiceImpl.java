@@ -10,6 +10,7 @@ import org.jupiterhub.pipu.chat.util.KeyGenUtil;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Optional;
 
 @ApplicationScoped
 public class MessageServiceImpl implements MessageService {
@@ -18,6 +19,11 @@ public class MessageServiceImpl implements MessageService {
 
     @Inject
     MessageSocketSocketService messageSocketSocketService;
+
+    @Override
+    public Message getMessage(String chatId, String messageId) {
+        return chatRepository.getMessage(chatId, messageId);
+    }
 
     @Override
     public Message sendMessage(String chatId, Message message) {

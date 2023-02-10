@@ -41,7 +41,7 @@ public class MessageResource {
 
     @POST
     public Message create(Message message) {
-        return messageService.sendMessage(null, message);    // chatId is generated from message
+        return messageService.sendMessage(message);    // chatId is generated from message
     }
 
     @GET
@@ -59,24 +59,24 @@ public class MessageResource {
     @DELETE
     @Path("/{messageId}")
     public void deleteMessage(String chatId, String messageId) {
-        messageService.deleteMessage(chatId, messageId);
+        messageService.deleteMessage(messageId);
     }
 
     @PUT
     @Path("/{messageId}/sent")
     public void markSent(String messageId) {
-        messageService.markSent(null, messageId);
+        messageService.markSent(messageId);
     }
 
     @PUT
     @Path("/{messageId}/delivered")
     public void markDelivered(String messageId) {
-        messageService.markDelivered(null, messageId);
+        messageService.markDelivered(messageId);
     }
 
     @PUT
     @Path("/{messageId}/read")
     public void markRead(String messageId) {
-        messageService.markRead(null, messageId);
+        messageService.markRead(messageId);
     }
 }

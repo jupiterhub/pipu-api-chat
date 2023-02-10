@@ -1,15 +1,19 @@
 package org.jupiterhub.pipu.chat.socket;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.logging.Log;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jupiterhub.pipu.chat.constant.MessageSocketError;
 import org.jupiterhub.pipu.chat.entity.Message;
+import org.jupiterhub.pipu.chat.exception.MessageSocketException;
 import org.jupiterhub.pipu.chat.record.client.Directory;
+import org.jupiterhub.pipu.chat.service.MessageService;
 import org.jupiterhub.pipu.chat.service.client.DirectoryRestService;
 import org.jupiterhub.pipu.chat.service.client.MessageClientService;
 import org.jupiterhub.pipu.chat.util.EnvironmentUtil;
-import org.jupiterhub.pipu.chat.util.JsonChatUtil;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -27,11 +31,17 @@ public class ChatSocket {
     @Inject
     MessageSocketSocketService messageSocketService;
 
+    @Inject
+    ObjectMapper objectMapper;
+
     @ConfigProperty(name = "pipu.chat-api.uri")
     String uri;
 
     @RestClient
     DirectoryRestService directoryRestService;
+
+    @Inject
+    MessageService messageService;
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username) {
@@ -42,9 +52,7 @@ public class ChatSocket {
 
         Directory directory = new Directory(username, replacedUri);
         directoryRestService.register(directory)
-                .thenAccept(unused -> {
-                    messageSocketService.openSession(username, session);
-                })
+                .thenAccept(unused -> messageSocketService.openSession(username, session))
                 .exceptionally(throwable -> {   // ORDER IS IMPORTANT. Exceptionally after thenAccept to ensure it doesn't run
                     Log.errorf("@onOpen. Failed to call directory service. Not registering %s. Cause: %s", directory, throwable.getMessage());
                     return null;
@@ -68,24 +76,35 @@ public class ChatSocket {
     }
 
     @OnMessage
-    public void onMessage(Session session, String jsonMessage) {
-        Message message = JsonChatUtil.decode(jsonMessage);
+    public void onMessage(String jsonMessage) {
+        Message message = getMessage(jsonMessage);
         if (messageSocketService.isActive(message.getTo())) {
             Log.info("Sending message locally");
-            messageSocketService.sendMessage(message.getTo(), message.getMessage());
-            messageSocketService.sendMessage(message.getFrom(), message.getMessage());
+            messageService.sendMessage(message);
+            messageSocketService.sendMessage(message.getFrom(), message.getMessage());  // also send to self
         } else {
             Log.info("Sending message remotely");
             // not in this host, lookup and then send message
             directoryRestService.lookup(message.getTo())
                     .thenAccept(sendRemoteMessage(message))
                     .thenAccept(unused -> messageSocketService.sendMessage(message.getFrom(), message.getMessageId()))   // send to self too
-                    .exceptionally(throwable -> {
-                        Log.errorf("@onMessage. Failed to call directory service. Not sending %s. Cause: %s", message, throwable.getMessage());
+                    .exceptionally(e -> {
+                        // target is not online, client should handle if there's an error
+                        Log.errorf("@onMessage. Failed to call directory service. Not sending %s.\nCause: %s", message, e.getMessage());
                         return null;
                     });
         }
 
+    }
+
+    private Message getMessage(String jsonMessage) {
+        Message message;
+        try {
+            message = objectMapper.readValue(jsonMessage, Message.class);
+        } catch (JsonProcessingException e) {
+            throw new MessageSocketException("Invalid Json. unable to send message. " + e.getMessage(), MessageSocketError.ON_MESSAGE_JSON_INVALID);
+        }
+        return message;
     }
 
 
@@ -109,8 +128,7 @@ public class ChatSocket {
     }
 
     private void broadcast(String message) {
-        messageSocketService.getActiveSessions().values().forEach(s -> {
-            s.getAsyncRemote().sendObject(message);
-        });
+        messageSocketService.getActiveSessions().values()
+                .forEach(s -> s.getAsyncRemote().sendObject(message));
     }
 }

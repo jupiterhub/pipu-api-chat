@@ -4,8 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <title>PIPU Chat!</title>
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/css/patternfly.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/css/patternfly-additions.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/css/patternfly.min.css" rel="stylesheet"
+          type="text/css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/css/patternfly-additions.min.css" rel="stylesheet"
+          type="text/css">
 
     <style>
         #chat {
@@ -14,6 +16,7 @@
           min-height: 300px;
           max-height: 300px;
       }
+
     </style>
 </head>
 
@@ -28,9 +31,9 @@
 <div class="container">
     <br/>
     <div class="row">
-        <input id="from" class="col-md-4" type="text" placeholder="your name">
-        <input id="to" class="col-md-4" type="text" placeholder="to:">
-        <button id="connect" class="col-md-1 btn btn-primary" type="button">connect</button>
+        <input class="col-md-4" id="from" placeholder="your name" type="text">
+        <input class="col-md-4" id="to" placeholder="to:" type="text">
+        <button class="col-md-1 btn btn-primary" id="connect" type="button">connect</button>
         <br/>
         <br/>
     </div>
@@ -38,8 +41,8 @@
         <textarea class="col-md-8" id="chat"></textarea>
     </div>
     <div class="row">
-        <input class="col-md-6" id="msg" type="text" placeholder="enter your message">
-        <button class="col-md-1 btn btn-primary" id="send" type="button" disabled>send</button>
+        <input class="col-md-6" id="msg" placeholder="enter your message" type="text">
+        <button class="col-md-1 btn btn-primary" disabled id="send" type="button">send</button>
     </div>
 
 </div>
@@ -101,7 +104,7 @@
               var value = $("#msg").val();
               var from = $("#from").val();
               var to = $("#to").val();
-              var data = { 'id': 1, 'message': value, 'from': from, 'to': to, 'timestamp': Date.now()};
+              var data = { 'message': value, 'from': from, 'to': to};
               console.log(data);
               socket.send(JSON.stringify(data));
               $("#msg").val("");
@@ -112,7 +115,8 @@
         $('#chat').scrollTop($('#chat')[0].scrollHeight);
       };
 
-    </script>
+
+</script>
 </body>
 
 </html>

@@ -24,6 +24,13 @@ public class Message {
         people = new ArrayList<>();
     }
 
+    public Message(String message, String from, String to) {
+        this();
+        this.message = message;
+        this.from = from;
+        this.to = to;
+    }
+
     public Message(String messageId, String chatId, List<String> people, String from, String to, String message,
                    Long sentTimestamp, Long readTimestamp, Long deliveredTimestamp) {
         this.messageId = messageId;
@@ -107,5 +114,20 @@ public class Message {
 
     public void setDeliveredTimestamp(Long deliveredTimestamp) {
         this.deliveredTimestamp = deliveredTimestamp;
+    }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "messageId='" + messageId + '\'' +
+                ", chatId='" + chatId + '\'' +
+                ", people=" + people +
+                ", from='" + from + '\'' +
+                ", to='" + to + '\'' +
+                ", message='" + message + '\'' +
+                ", sentTimestamp=" + sentTimestamp +
+                ", readTimestamp=" + readTimestamp +
+                ", deliveredTimestamp=" + deliveredTimestamp +
+                '}';
     }
 }

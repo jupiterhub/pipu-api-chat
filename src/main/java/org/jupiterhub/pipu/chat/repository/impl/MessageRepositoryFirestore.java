@@ -72,22 +72,22 @@ public class MessageRepositoryFirestore implements MessageRepository {
     }
 
     @Override
-    public void deleteMessage(String chatId, String messageId) {
+    public void deleteMessage(String messageId) {
         firestore.collection(MSG_COLLECTION).document(messageId).delete();
     }
 
     @Override
-    public void markSent(String chatId, String messageId) {
+    public void markSent(String messageId) {
         firestore.collection(MSG_COLLECTION).document(messageId).update("sentTimestamp", Instant.now().toEpochMilli());
     }
 
     @Override
-    public void markDelivered(String chatId, String messageId) {
+    public void markDelivered(String messageId) {
         firestore.collection(MSG_COLLECTION).document(messageId).update("deliveredTimestamp", Instant.now().toEpochMilli());
     }
 
     @Override
-    public void markRead(String chatId, String messageId) {
+    public void markRead(String messageId) {
         firestore.collection(MSG_COLLECTION).document(messageId).update("readTimestamp", Instant.now().toEpochMilli());
     }
 

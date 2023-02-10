@@ -30,16 +30,16 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public Message sendMessage(String chatId, Message message) {
+    public Message sendMessage(Message message) {
         // set Id
         message.setPeople(List.of(message.getFrom(), message.getTo()));
         message.setChatId(KeyGenUtil.createChatId(message.getPeople()));
         message.setMessageId(KeyGenUtil.createMessageId(message.getFrom(), message.getTo()));
         message.setSentTimestamp(Instant.now().toEpochMilli());
-        messageRepository.saveMessage(message);
-//        messageSocketSocketService.sendMessage(message);  // TODO
+        Message savedMessage = messageRepository.saveMessage(message);
+        messageSocketSocketService.sendMessage(message);
 
-        return message;
+        return savedMessage;
     }
 
     @Override
@@ -48,23 +48,23 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public void deleteMessage(String chatId, String messageId) {
-        messageRepository.deleteMessage(null, messageId);
+    public void deleteMessage(String messageId) {
+        messageRepository.deleteMessage(messageId);
     }
 
     @Override
-    public void markSent(String chatId, String messageId) {
-        messageRepository.markSent(chatId, messageId);
+    public void markSent(String messageId) {
+        messageRepository.markSent(messageId);
     }
 
     @Override
-    public void markDelivered(String chatId, String messageId) {
-        messageRepository.markDelivered(chatId, messageId);
+    public void markDelivered(String messageId) {
+        messageRepository.markDelivered(messageId);
     }
 
     @Override
-    public void markRead(String chatId, String messageId) {
-        messageRepository.markRead(chatId, messageId);
+    public void markRead(String messageId) {
+        messageRepository.markRead(messageId);
     }
 
     @Override

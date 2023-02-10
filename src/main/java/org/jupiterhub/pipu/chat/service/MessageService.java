@@ -10,17 +10,17 @@ public interface MessageService {
 
     List<Message> getMessageByChatId(String chatId);
 
-    Message sendMessage(String chatId, Message message);
+    Message sendMessage(Message message);
 
     void updateMessage(String messageId, String message);
 
-    void deleteMessage(String chatId, String messageId);
+    void deleteMessage(String messageId);
 
-    void markSent(String chatId, String messageId);
+    void markSent(String messageId);
 
-    void markDelivered(String chatId, String messageId);
+    void markDelivered(String messageId);
 
-    void markRead(String chatId, String messageId);
+    void markRead(String messageId);
 
 
     List<Message> getMessagesByOffset(String chatId, long offset, int limit);

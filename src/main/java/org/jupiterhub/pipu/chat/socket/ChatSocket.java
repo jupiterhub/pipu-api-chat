@@ -4,7 +4,7 @@ import io.quarkus.logging.Log;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jupiterhub.pipu.chat.entity.NewMessage;
+import org.jupiterhub.pipu.chat.entity.Message;
 import org.jupiterhub.pipu.chat.record.client.Directory;
 import org.jupiterhub.pipu.chat.service.client.DirectoryRestService;
 import org.jupiterhub.pipu.chat.service.client.MessageClientService;
@@ -69,7 +69,7 @@ public class ChatSocket {
 
     @OnMessage
     public void onMessage(Session session, String jsonMessage) {
-        NewMessage message = JsonChatUtil.decode(jsonMessage);
+        Message message = JsonChatUtil.decode(jsonMessage);
         if (messageSocketService.isActive(message.getTo())) {
             Log.info("Sending message locally");
             messageSocketService.sendMessage(message.getTo(), message.getMessage());
@@ -89,7 +89,7 @@ public class ChatSocket {
     }
 
 
-    private Consumer<Response> sendRemoteMessage(NewMessage message) {
+    private Consumer<Response> sendRemoteMessage(Message message) {
         return response -> {
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 Log.infof("User %s not found in remote, not sending message.", message.getTo());

@@ -1,6 +1,6 @@
 package org.jupiterhub.pipu.chat.util;
 
-import org.jupiterhub.pipu.chat.entity.NewMessage;
+import org.jupiterhub.pipu.chat.entity.Message;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -9,11 +9,11 @@ import javax.json.JsonValue;
 import java.io.StringReader;
 
 public class JsonChatUtil {
-    public static NewMessage decode(String json) {
+    public static Message decode(String json) {
         try (JsonReader reader = Json.createReader(new StringReader(json))) {
             JsonObject parsed = reader.readObject();
 
-            return new NewMessage(
+            return new Message(
                     parsed.getString("messageId"),
                     parsed.getString("chatId"),
                     parsed.getJsonArray("people").stream().map(JsonValue::toString).toList(),

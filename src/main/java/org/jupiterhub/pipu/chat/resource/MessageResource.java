@@ -2,7 +2,7 @@ package org.jupiterhub.pipu.chat.resource;
 
 import org.jboss.resteasy.reactive.RestQuery;
 import org.jupiterhub.pipu.chat.constant.MessageApiError;
-import org.jupiterhub.pipu.chat.entity.NewMessage;
+import org.jupiterhub.pipu.chat.entity.Message;
 import org.jupiterhub.pipu.chat.exception.MessageApiException;
 import org.jupiterhub.pipu.chat.service.MessageService;
 
@@ -20,7 +20,7 @@ public class MessageResource {
 
     @Path("/byChat/{chatId}")
     @GET
-    public List<NewMessage> getAllMessages(String chatId, @RestQuery Long offset, @RestQuery Integer limit) {
+    public List<Message> getAllMessages(String chatId, @RestQuery Long offset, @RestQuery Integer limit) {
         if (limit != null) {
             offset = offset != null ? offset : Instant.now().toEpochMilli();
             return messageService.getMessagesByOffset(chatId, offset, limit);
@@ -30,7 +30,7 @@ public class MessageResource {
     }
 
     @GET
-    public List<NewMessage> getAllMessages(@RestQuery String userId) {
+    public List<Message> getAllMessages(@RestQuery String userId) {
 
         if (userId == null) {
             throw new MessageApiException("`userId` must be provided as a queryParameter to get messages. Getting all messages is not supported.", MessageApiError.GET_ALL_MSG_CONTROLLER_MISSING_USER_ID);
@@ -40,13 +40,13 @@ public class MessageResource {
     }
 
     @POST
-    public NewMessage create(NewMessage message) {
+    public Message create(Message message) {
         return messageService.sendMessage(null, message);    // chatId is generated from message
     }
 
     @GET
     @Path("/{messageId}")
-    public NewMessage getMessage(String messageId) {
+    public Message getMessage(String messageId) {
         return messageService.getMessageById(null, messageId);
     }
 

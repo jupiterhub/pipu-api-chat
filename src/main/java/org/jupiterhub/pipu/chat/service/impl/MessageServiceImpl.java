@@ -1,6 +1,6 @@
 package org.jupiterhub.pipu.chat.service.impl;
 
-import org.jupiterhub.pipu.chat.entity.NewMessage;
+import org.jupiterhub.pipu.chat.entity.Message;
 import org.jupiterhub.pipu.chat.repository.MessageRepository;
 import org.jupiterhub.pipu.chat.service.MessageService;
 import org.jupiterhub.pipu.chat.socket.MessageSocketSocketService;
@@ -20,17 +20,17 @@ public class MessageServiceImpl implements MessageService {
     MessageSocketSocketService messageSocketSocketService;
 
     @Override
-    public NewMessage getMessageById(String chatId, String messageId) {
+    public Message getMessageById(String chatId, String messageId) {
         return messageRepository.getMessageById(null, messageId);
     }
 
     @Override
-    public List<NewMessage> getMessageByChatId(String chatId) {
+    public List<Message> getMessageByChatId(String chatId) {
         return messageRepository.getMessageByChatId(chatId);
     }
 
     @Override
-    public NewMessage sendMessage(String chatId, NewMessage message) {
+    public Message sendMessage(String chatId, Message message) {
         // set Id
         message.setPeople(List.of(message.getFrom(), message.getTo()));
         message.setChatId(KeyGenUtil.createChatId(message.getPeople()));
@@ -68,12 +68,12 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public List<NewMessage> getMessagesByOffset(String chatId, long offset, int limit) {
+    public List<Message> getMessagesByOffset(String chatId, long offset, int limit) {
         return messageRepository.getMessagesByOffset(chatId, offset, limit);
     }
 
     @Override
-    public List<NewMessage> getMessageByUserId(String userId) {
+    public List<Message> getMessageByUserId(String userId) {
         return messageRepository.getMessageByUserId(userId);
     }
 }

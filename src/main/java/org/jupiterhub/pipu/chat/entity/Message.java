@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RegisterForReflection
-public class NewMessage {
+public class Message {
 
     private String messageId;
     private String chatId;
@@ -20,12 +20,12 @@ public class NewMessage {
     private Long readTimestamp;
     private Long deliveredTimestamp;
 
-    public NewMessage() {
+    public Message() {
         people = new ArrayList<>();
     }
 
-    public NewMessage(String messageId, String chatId, List<String> people, String from, String to, String message,
-                      Long sentTimestamp, Long readTimestamp, Long deliveredTimestamp) {
+    public Message(String messageId, String chatId, List<String> people, String from, String to, String message,
+                   Long sentTimestamp, Long readTimestamp, Long deliveredTimestamp) {
         this.messageId = messageId;
         this.chatId = chatId;
         this.people = people;

@@ -3,7 +3,7 @@ package org.jupiterhub.pipu.chat.repository.impl;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.Query;
 import org.jupiterhub.pipu.chat.constant.MessageApiError;
-import org.jupiterhub.pipu.chat.entity.NewMessage;
+import org.jupiterhub.pipu.chat.entity.Message;
 import org.jupiterhub.pipu.chat.exception.MessageApiException;
 import org.jupiterhub.pipu.chat.repository.MessageRepository;
 
@@ -27,16 +27,16 @@ public class MessageRepositoryFirestore implements MessageRepository {
     Firestore firestore;
 
     @Override
-    public NewMessage saveMessage(NewMessage message) {
+    public Message saveMessage(Message message) {
         firestore.collection(MSG_COLLECTION).document(message.getMessageId()).create(message);
         return message;
     }
 
     @Override
-    public NewMessage getMessageById(String chatId, String messageId) {
+    public Message getMessageById(String chatId, String messageId) {
         try {
             return firestore.collection(MSG_COLLECTION).document(messageId).get()
-                    .get(MAX_QUERY_TIME_IN_SEC, TimeUnit.SECONDS).toObject(NewMessage.class);
+                    .get(MAX_QUERY_TIME_IN_SEC, TimeUnit.SECONDS).toObject(Message.class);
         } catch (InterruptedException e) {
             throw new MessageApiException("Interrupted while getting message. " + e.getMessage(), MessageApiError.GET_MSG_BY_MSG_ID_REPO);
         } catch (ExecutionException e) {
@@ -47,16 +47,16 @@ public class MessageRepositoryFirestore implements MessageRepository {
     }
 
     @Override
-    public List<NewMessage> getMessageByChatId(String chatId) {
+    public List<Message> getMessageByChatId(String chatId) {
         try {
-            List<NewMessage> newMessages = firestore.collection(MSG_COLLECTION)
+            List<Message> messages = firestore.collection(MSG_COLLECTION)
                     .whereEqualTo("chatId", chatId)
                     .orderBy("sentTimestamp", Query.Direction.ASCENDING)
                     .get().get(MAX_QUERY_TIME_IN_SEC, TimeUnit.SECONDS)
-                    .getDocuments().stream().map(snapshot -> snapshot.toObject(NewMessage.class))
+                    .getDocuments().stream().map(snapshot -> snapshot.toObject(Message.class))
                     .toList();
-            System.out.println("MESSAGES " + newMessages);
-            return newMessages;
+            System.out.println("MESSAGES " + messages);
+            return messages;
         } catch (InterruptedException e) {
             throw new MessageApiException("Interrupted while getting message. " + e.getMessage(), MessageApiError.GET_MSG_BY_CHAT_ID_REPO);
         } catch (ExecutionException e) {
@@ -92,7 +92,7 @@ public class MessageRepositoryFirestore implements MessageRepository {
     }
 
     @Override
-    public List<NewMessage> getMessagesByOffset(String chatId, long offset, int limit) {
+    public List<Message> getMessagesByOffset(String chatId, long offset, int limit) {
         try {
             return firestore.collection(MSG_COLLECTION)
                     .whereEqualTo("chatId", chatId)
@@ -100,8 +100,8 @@ public class MessageRepositoryFirestore implements MessageRepository {
                     .startAfter(offset)
                     .limit(limit)
                     .get().get(MAX_QUERY_TIME_IN_SEC, TimeUnit.SECONDS).getDocuments().stream()
-                    .map(snap -> snap.toObject(NewMessage.class))
-                    .sorted(Comparator.comparing(NewMessage::getSentTimestamp))     // reverse order again so we can get the last n-limit..n
+                    .map(snap -> snap.toObject(Message.class))
+                    .sorted(Comparator.comparing(Message::getSentTimestamp))     // reverse order again so we can get the last n-limit..n
                     .toList();
         } catch (InterruptedException e) {
             throw new MessageApiException("Interrupted while getting message. " + e.getMessage(), MessageApiError.GET_MSG_BY_OFFSET_REPO);
@@ -113,13 +113,13 @@ public class MessageRepositoryFirestore implements MessageRepository {
     }
 
     @Override
-    public List<NewMessage> getMessageByUserId(String userId) {
+    public List<Message> getMessageByUserId(String userId) {
         try {
             return firestore.collection(MSG_COLLECTION)
                     .whereArrayContains("people", userId)
                     .orderBy("sentTimestamp", Query.Direction.ASCENDING)   // get last n records
                     .get().get(MAX_QUERY_TIME_IN_SEC, TimeUnit.SECONDS).getDocuments().stream()
-                    .map(snap -> snap.toObject(NewMessage.class))
+                    .map(snap -> snap.toObject(Message.class))
                     .toList();
         } catch (InterruptedException e) {
             throw new MessageApiException("Interrupted while getting message. " + e.getMessage(), MessageApiError.GET_MSG_BY_USER_ID_REPO);

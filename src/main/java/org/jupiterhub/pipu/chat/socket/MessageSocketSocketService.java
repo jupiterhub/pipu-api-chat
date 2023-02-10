@@ -1,6 +1,6 @@
 package org.jupiterhub.pipu.chat.socket;
 
-import org.jupiterhub.pipu.chat.entity.NewMessage;
+import org.jupiterhub.pipu.chat.entity.Message;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.websocket.Session;
@@ -24,7 +24,7 @@ public class MessageSocketSocketService implements IMessageSocketService {
     }
 
     @Override
-    public void sendMessage(NewMessage message) {
+    public void sendMessage(Message message) {
         sendMessage(message.getTo(), message.getMessage());
     }
 

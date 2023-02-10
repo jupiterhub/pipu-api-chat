@@ -1,6 +1,6 @@
 package org.jupiterhub.pipu.chat.service.client;
 
-import org.jupiterhub.pipu.chat.entity.NewMessage;
+import org.jupiterhub.pipu.chat.entity.Message;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -10,5 +10,5 @@ import java.util.concurrent.CompletionStage;
 public interface MessageClientService {
 
     @POST
-    CompletionStage<Void> send(NewMessage message);
+    CompletionStage<Void> send(Message message);
 }

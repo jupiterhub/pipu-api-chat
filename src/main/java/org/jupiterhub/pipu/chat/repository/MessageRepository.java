@@ -1,17 +1,17 @@
 package org.jupiterhub.pipu.chat.repository;
 
-import org.jupiterhub.pipu.chat.entity.NewMessage;
+import org.jupiterhub.pipu.chat.entity.Message;
 
 import java.util.List;
 
 public interface MessageRepository {
-    static final String FIRESTORE_IMPL = "messageRepositoryFirestore";
+    String FIRESTORE_IMPL = "messageRepositoryFirestore";
 
-    NewMessage saveMessage(NewMessage message);
+    Message saveMessage(Message message);
 
-    NewMessage getMessageById(String chatId, String messageId);
+    Message getMessageById(String chatId, String messageId);
 
-    List<NewMessage> getMessageByChatId(String chatId);
+    List<Message> getMessageByChatId(String chatId);
 
     void updateMessage(String messageId, String message);
 
@@ -23,7 +23,7 @@ public interface MessageRepository {
 
     void markRead(String chatId, String messageId);
 
-    List<NewMessage> getMessagesByOffset(String chatId, long offset, int limit);
+    List<Message> getMessagesByOffset(String chatId, long offset, int limit);
 
-    List<NewMessage> getMessageByUserId(String userId);
+    List<Message> getMessageByUserId(String userId);
 }

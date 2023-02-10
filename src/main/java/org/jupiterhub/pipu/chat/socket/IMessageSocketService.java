@@ -1,6 +1,6 @@
 package org.jupiterhub.pipu.chat.socket;
 
-import org.jupiterhub.pipu.chat.entity.NewMessage;
+import org.jupiterhub.pipu.chat.entity.Message;
 
 import javax.websocket.Session;
 import java.util.Map;
@@ -10,7 +10,7 @@ public interface IMessageSocketService {
 
     void closeSession(String username);
 
-    void sendMessage(NewMessage message);
+    void sendMessage(Message message);
 
     void sendMessage(String to, String message);
 

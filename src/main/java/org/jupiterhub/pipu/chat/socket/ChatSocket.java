@@ -3,15 +3,13 @@ package org.jupiterhub.pipu.chat.socket;
 import io.quarkus.logging.Log;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
-import org.eclipse.microprofile.rest.client.ext.QueryParamStyle;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jupiterhub.pipu.chat.record.Message;
+import org.jupiterhub.pipu.chat.entity.NewMessage;
 import org.jupiterhub.pipu.chat.record.client.Directory;
-import org.jupiterhub.pipu.chat.service.client.ChatRestService;
 import org.jupiterhub.pipu.chat.service.client.DirectoryRestService;
+import org.jupiterhub.pipu.chat.service.client.MessageClientService;
 import org.jupiterhub.pipu.chat.util.EnvironmentUtil;
 import org.jupiterhub.pipu.chat.util.JsonChatUtil;
-import org.jupiterhub.pipu.chat.util.KeyGenUtil;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -69,25 +67,21 @@ public class ChatSocket {
         broadcast("User " + username + " left on error: " + throwable);
     }
 
-    private Message parseJson(String message) {
-        return JsonChatUtil.decode(message);
-    }
-
     @OnMessage
-    public void onMessage(Session session, String message) {
-        Message chatThread = parseJson(message);
-        if (messageSocketService.isActive(chatThread.to())) {
+    public void onMessage(Session session, String jsonMessage) {
+        NewMessage message = JsonChatUtil.decode(jsonMessage);
+        if (messageSocketService.isActive(message.getTo())) {
             Log.info("Sending message locally");
-            messageSocketService.sendMessage(chatThread.to(), chatThread.message());
-            messageSocketService.sendMessage(chatThread.from(), chatThread.message());
+            messageSocketService.sendMessage(message.getTo(), message.getMessage());
+            messageSocketService.sendMessage(message.getFrom(), message.getMessage());
         } else {
             Log.info("Sending message remotely");
             // not in this host, lookup and then send message
-            directoryRestService.lookup(chatThread.to())
-                    .thenAccept(sendRemoteMessage(chatThread))
-                    .thenAccept(unused -> messageSocketService.sendMessage(chatThread.from(), chatThread.message()))   // send to self too
+            directoryRestService.lookup(message.getTo())
+                    .thenAccept(sendRemoteMessage(message))
+                    .thenAccept(unused -> messageSocketService.sendMessage(message.getFrom(), message.getMessageId()))   // send to self too
                     .exceptionally(throwable -> {
-                        Log.errorf("@onMessage. Failed to call directory service. Not sending %s. Cause: %s", chatThread, throwable.getMessage());
+                        Log.errorf("@onMessage. Failed to call directory service. Not sending %s. Cause: %s", message, throwable.getMessage());
                         return null;
                     });
         }
@@ -95,19 +89,19 @@ public class ChatSocket {
     }
 
 
-    private Consumer<Response> sendRemoteMessage(Message message) {
+    private Consumer<Response> sendRemoteMessage(NewMessage message) {
         return response -> {
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                Log.infof("User %s not found in remote, not sending message.", message.to());
+                Log.infof("User %s not found in remote, not sending message.", message.getTo());
                 return;
             }
 
             Directory directory = response.readEntity(Directory.class);
-            ChatRestService build = RestClientBuilder.newBuilder()
+            MessageClientService build = RestClientBuilder.newBuilder()
                     .baseUri(URI.create(directory.host()))
-                    .build(ChatRestService.class);
+                    .build(MessageClientService.class);
 
-            build.send(KeyGenUtil.commutativeKey(message.from(), message.to()).toString(), message).exceptionally(throwable -> {
+            build.send(message).exceptionally(throwable -> {
                 Log.errorf("@onMessage. Failed to send remote[%s] message %s. Cause: %s", directory.host(), message, throwable.getMessage());
                 return null;
             });

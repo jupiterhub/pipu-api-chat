@@ -2,7 +2,6 @@ package org.jupiterhub.pipu.chat.util;
 
 import org.jupiterhub.pipu.chat.exception.ChatIdCreationException;
 import org.jupiterhub.pipu.chat.exception.GenerateKeyException;
-import org.jupiterhub.pipu.chat.record.Message;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -32,10 +31,10 @@ public class KeyGenUtil {
             throw new ChatIdCreationException("At least 2 people must be provided to generate a key");
         }
 
-        return  KeyGenUtil.commutativeKey(people.get(0), people.get(1));
+        return KeyGenUtil.commutativeKey(people.get(0), people.get(1));
     }
 
-    public static String createMessageId(Message message) {
-        return message.from() + "-" + message.to() + "-" + Instant.now().toEpochMilli();
+    public static String createMessageId(String from, String to) {
+        return from + "-" + to + "-" + Instant.now().toEpochMilli();
     }
 }

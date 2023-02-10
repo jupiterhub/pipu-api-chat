@@ -1,64 +1,79 @@
 package org.jupiterhub.pipu.chat.service.impl;
 
-import org.jupiterhub.pipu.chat.record.Message;
-import org.jupiterhub.pipu.chat.record.MessageTimestamp;
-import org.jupiterhub.pipu.chat.repository.ChatRepository;
+import org.jupiterhub.pipu.chat.entity.NewMessage;
+import org.jupiterhub.pipu.chat.repository.MessageRepository;
 import org.jupiterhub.pipu.chat.service.MessageService;
 import org.jupiterhub.pipu.chat.socket.MessageSocketSocketService;
 import org.jupiterhub.pipu.chat.util.KeyGenUtil;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.time.Instant;
 import java.util.List;
 
 @ApplicationScoped
 public class MessageServiceImpl implements MessageService {
     @Inject
-    ChatRepository chatRepository;
+    MessageRepository messageRepository;
 
     @Inject
     MessageSocketSocketService messageSocketSocketService;
 
     @Override
-    public Message getMessage(String chatId, String messageId) {
-        return chatRepository.getMessage(chatId, messageId);
+    public NewMessage getMessageById(String chatId, String messageId) {
+        return messageRepository.getMessageById(null, messageId);
     }
 
     @Override
-    public Message sendMessage(String chatId, Message message) {
-        Message createdMessage = new Message(KeyGenUtil.createMessageId(message), message.message(), message.from(), message.to());
-        chatRepository.saveMessage(chatId, createdMessage);
-        messageSocketSocketService.sendMessage(createdMessage);
-        return createdMessage;
+    public List<NewMessage> getMessageByChatId(String chatId) {
+        return messageRepository.getMessageByChatId(chatId);
     }
 
     @Override
-    public Message updateMessage(String chatId, String messageId, String message) {
-        return chatRepository.updateMessage(chatId, messageId, message);
+    public NewMessage sendMessage(String chatId, NewMessage message) {
+        // set Id
+        message.setPeople(List.of(message.getFrom(), message.getTo()));
+        message.setChatId(KeyGenUtil.createChatId(message.getPeople()));
+        message.setMessageId(KeyGenUtil.createMessageId(message.getFrom(), message.getTo()));
+        message.setSentTimestamp(Instant.now().toEpochMilli());
+        messageRepository.saveMessage(message);
+//        messageSocketSocketService.sendMessage(message);  // TODO
+
+        return message;
+    }
+
+    @Override
+    public void updateMessage(String messageId, String message) {
+        messageRepository.updateMessage(messageId, message);
     }
 
     @Override
     public void deleteMessage(String chatId, String messageId) {
-        chatRepository.deleteMessage(chatId, messageId);
+        messageRepository.deleteMessage(null, messageId);
     }
 
     @Override
-    public MessageTimestamp markSent(String chatId, String messageId) {
-        return chatRepository.markSent(chatId, messageId);
+    public void markSent(String chatId, String messageId) {
+        messageRepository.markSent(chatId, messageId);
     }
 
     @Override
-    public MessageTimestamp markDelivered(String chatId, String messageId) {
-        return chatRepository.markDelivered(chatId, messageId);
+    public void markDelivered(String chatId, String messageId) {
+        messageRepository.markDelivered(chatId, messageId);
     }
 
     @Override
-    public MessageTimestamp markRead(String chatId, String messageId) {
-        return chatRepository.markRead(chatId, messageId);
+    public void markRead(String chatId, String messageId) {
+        messageRepository.markRead(chatId, messageId);
     }
 
     @Override
-    public List<Message> getMessagesByOffset(String chatId, int offset, int limit) {
-        return chatRepository.getMessagesByOffset(chatId, offset, limit);
+    public List<NewMessage> getMessagesByOffset(String chatId, long offset, int limit) {
+        return messageRepository.getMessagesByOffset(chatId, offset, limit);
+    }
+
+    @Override
+    public List<NewMessage> getMessageByUserId(String userId) {
+        return messageRepository.getMessageByUserId(userId);
     }
 }

@@ -1,18 +1,15 @@
 package org.jupiterhub.pipu.chat.socket;
 
-import org.jupiterhub.pipu.chat.record.Chat;
-import org.jupiterhub.pipu.chat.record.Message;
-import org.jupiterhub.pipu.chat.service.ChatService;
+import org.jupiterhub.pipu.chat.entity.NewMessage;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import javax.websocket.Session;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ApplicationScoped
 public class MessageSocketSocketService implements IMessageSocketService {
-    private Map<String, Session> activeSessions = new ConcurrentHashMap<>();
+    private final Map<String, Session> activeSessions = new ConcurrentHashMap<>();
 
     @Override
     public void openSession(String username, Session session) {
@@ -27,8 +24,8 @@ public class MessageSocketSocketService implements IMessageSocketService {
     }
 
     @Override
-    public void sendMessage(Message message) {
-        sendMessage(message.to(), message.message());
+    public void sendMessage(NewMessage message) {
+        sendMessage(message.getTo(), message.getMessage());
     }
 
     @Override

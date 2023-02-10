@@ -1,42 +1,59 @@
 package org.jupiterhub.pipu.chat.resource;
 
-import org.jupiterhub.pipu.chat.record.Chat;
-import org.jupiterhub.pipu.chat.record.Message;
-import org.jupiterhub.pipu.chat.service.ChatService;
+import org.jboss.resteasy.reactive.RestQuery;
+import org.jupiterhub.pipu.chat.constant.MessageApiError;
+import org.jupiterhub.pipu.chat.entity.NewMessage;
+import org.jupiterhub.pipu.chat.exception.MessageApiException;
 import org.jupiterhub.pipu.chat.service.MessageService;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
+import java.time.Instant;
 import java.util.List;
 
-@Path("/message/{chatId}")
+@Path("/message")
 public class MessageResource {
 
     @Inject
     MessageService messageService;
-    @Inject
-    ChatService chatService;
 
-    @POST
-    public Message create(String chatId, Message message) {
-        return messageService.sendMessage(chatId, message);
+
+    @Path("/byChat/{chatId}")
+    @GET
+    public List<NewMessage> getAllMessages(String chatId, @RestQuery Long offset, @RestQuery Integer limit) {
+        if (limit != null) {
+            offset = offset != null ? offset : Instant.now().toEpochMilli();
+            return messageService.getMessagesByOffset(chatId, offset, limit);
+        } else {
+            return messageService.getMessageByChatId(chatId);
+        }
     }
 
     @GET
-    public List<Message> getAllMessages(String chatId) {
-        return chatService.getChatById(chatId).messages();
+    public List<NewMessage> getAllMessages(@RestQuery String userId) {
+
+        if (userId == null) {
+            throw new MessageApiException("`userId` must be provided as a queryParameter to get messages. Getting all messages is not supported.", MessageApiError.GET_ALL_MSG_CONTROLLER_MISSING_USER_ID);
+        }
+
+        return messageService.getMessageByUserId(userId);
+    }
+
+    @POST
+    public NewMessage create(NewMessage message) {
+        return messageService.sendMessage(null, message);    // chatId is generated from message
     }
 
     @GET
     @Path("/{messageId}")
-    public Message getMessage(String chatId, String messageId) {
-        return messageService.getMessage(chatId, messageId);
+    public NewMessage getMessage(String messageId) {
+        return messageService.getMessageById(null, messageId);
     }
 
     @PUT
     @Path("/{messageId}")
-    public Message updateMessage(String chatId, String messageId, Message message) {
-        return messageService.updateMessage(chatId, messageId, message.message());
+    public void updateMessage(String messageId, String message) {
+        messageService.updateMessage(messageId, message);
     }
 
     @DELETE
@@ -47,19 +64,19 @@ public class MessageResource {
 
     @PUT
     @Path("/{messageId}/sent")
-    public void markSent(String chatId, String messageId) {
-        messageService.markSent(chatId, messageId);
+    public void markSent(String messageId) {
+        messageService.markSent(null, messageId);
     }
 
     @PUT
     @Path("/{messageId}/delivered")
-    public void markDelivered(String chatId, String messageId) {
-        messageService.markDelivered(chatId, messageId);
+    public void markDelivered(String messageId) {
+        messageService.markDelivered(null, messageId);
     }
 
     @PUT
     @Path("/{messageId}/read")
-    public void markRead(String chatId, String messageId) {
-        messageService.markRead(chatId, messageId);
+    public void markRead(String messageId) {
+        messageService.markRead(null, messageId);
     }
 }

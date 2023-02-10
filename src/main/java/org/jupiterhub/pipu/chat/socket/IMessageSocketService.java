@@ -1,14 +1,17 @@
 package org.jupiterhub.pipu.chat.socket;
 
-import org.jupiterhub.pipu.chat.record.Message;
+import org.jupiterhub.pipu.chat.entity.NewMessage;
 
 import javax.websocket.Session;
 import java.util.Map;
 
 public interface IMessageSocketService {
     void openSession(String username, Session session);
+
     void closeSession(String username);
-    void sendMessage(Message message);
+
+    void sendMessage(NewMessage message);
+
     void sendMessage(String to, String message);
 
     boolean isActive(String username);

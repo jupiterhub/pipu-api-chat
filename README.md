@@ -3,7 +3,8 @@ A websocket server designed for chat, capable of scaling and smartly connecting 
 
 # Dependencies
 * pipu-api-chat-directory
-* MongoDB (For message history)
+* Firebase (For message history)
+* Environment variable for JSON `export GOOGLE_APPLICATION_CREDENTIALS=<path-to-json-file>`
 
 ### Dev mode
 ```shell script

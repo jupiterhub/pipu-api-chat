@@ -1,17 +1,19 @@
 package org.jupiterhub.pipu.chat.entity;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import lombok.Builder;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @RegisterForReflection
+@Builder
 public class Message {
 
     private String messageId;
     private String chatId;
     private List<String> people;
-    
+
     private String from;
 
     private String to;

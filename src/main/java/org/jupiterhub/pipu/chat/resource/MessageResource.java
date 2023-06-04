@@ -42,8 +42,12 @@ public class MessageResource {
     }
 
     @POST
-    public Message create(@Valid MessageRequest messageRequest) {
-        return messageService.sendMessage(new Message(messageRequest.getFrom(), messageRequest.getTo(), messageRequest.getMessage()));    // chatId is generated from message
+    public Message create(@Valid MessageRequest request) {
+        return messageService.sendMessage(Message.builder()
+                .from(request.getFrom())
+                .to(request.getTo())
+                .message(request.getMessage())
+                .build());    // chatId is generated from message
     }
 
     @GET

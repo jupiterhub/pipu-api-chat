@@ -58,7 +58,10 @@ public class MessageResource {
 
     @PUT
     @Path("/{messageId}")
-    public void updateMessage(String messageId, String message) {
+    public void updateMessage(String messageId, @Valid String message) {
+        if (message.isBlank()) {
+            throw new BadRequestException("message body is required");
+        }
         messageService.updateMessage(messageId, message);
     }
 

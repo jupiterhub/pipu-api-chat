@@ -5,8 +5,10 @@ import org.jupiterhub.pipu.chat.constant.MessageApiError;
 import org.jupiterhub.pipu.chat.entity.Message;
 import org.jupiterhub.pipu.chat.exception.MessageApiException;
 import org.jupiterhub.pipu.chat.service.MessageService;
+import org.jupiterhub.pipu.chat.vo.MessageRequest;
 
 import javax.inject.Inject;
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import java.time.Instant;
 import java.util.List;
@@ -40,8 +42,8 @@ public class MessageResource {
     }
 
     @POST
-    public Message create(Message message) {
-        return messageService.sendMessage(message);    // chatId is generated from message
+    public Message create(@Valid MessageRequest messageRequest) {
+        return messageService.sendMessage(new Message(messageRequest.getFrom(), messageRequest.getTo(), messageRequest.getMessage()));    // chatId is generated from message
     }
 
     @GET

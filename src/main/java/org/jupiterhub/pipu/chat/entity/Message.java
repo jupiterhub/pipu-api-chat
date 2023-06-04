@@ -11,6 +11,7 @@ public class Message {
     private String messageId;
     private String chatId;
     private List<String> people;
+    
     private String from;
 
     private String to;

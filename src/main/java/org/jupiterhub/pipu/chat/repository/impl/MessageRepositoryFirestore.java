@@ -55,7 +55,6 @@ public class MessageRepositoryFirestore implements MessageRepository {
                     .get().get(MAX_QUERY_TIME_IN_SEC, TimeUnit.SECONDS)
                     .getDocuments().stream().map(snapshot -> snapshot.toObject(Message.class))
                     .toList();
-            System.out.println("MESSAGES " + messages);
             return messages;
         } catch (InterruptedException e) {
             throw new MessageApiException("Interrupted while getting message. " + e.getMessage(), MessageApiError.GET_MSG_BY_CHAT_ID_REPO);

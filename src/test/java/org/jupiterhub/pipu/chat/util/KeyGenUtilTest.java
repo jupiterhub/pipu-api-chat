@@ -27,15 +27,9 @@ class KeyGenUtilTest {
     @Test
     void throwExceptionIfParamIsNull() {
         // Given / When
-        GenerateKeyException thrownFirstMissing = assertThrows(GenerateKeyException.class, () -> {
-            KeyGenUtil.commutativeKey(null, "jup");
-        });
-        GenerateKeyException thrownSecondMissing = assertThrows(GenerateKeyException.class, () -> {
-            KeyGenUtil.commutativeKey("jup", null);
-        });
-        GenerateKeyException thrownBothMissing = assertThrows(GenerateKeyException.class, () -> {
-            KeyGenUtil.commutativeKey( null, null);
-        });
+        GenerateKeyException thrownFirstMissing = assertThrows(GenerateKeyException.class, () -> KeyGenUtil.commutativeKey(null, "jup"));
+        GenerateKeyException thrownSecondMissing = assertThrows(GenerateKeyException.class, () -> KeyGenUtil.commutativeKey("jup", null));
+        GenerateKeyException thrownBothMissing = assertThrows(GenerateKeyException.class, () -> KeyGenUtil.commutativeKey( null, null));
 
         // Then
         assertEquals("Both parameters are required to generate key.", thrownFirstMissing.getMessage());

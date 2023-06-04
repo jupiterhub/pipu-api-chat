@@ -4,6 +4,7 @@ import org.jupiterhub.pipu.chat.entity.Message;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.websocket.Session;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,14 +14,20 @@ public class MessageSocketSocketService implements IMessageSocketService {
 
     @Override
     public void openSession(String username, Session session) {
-        // only store to sesion if there are no exceptions
+        // only store to session if there are no exceptions
         // TODO: DB Load top k previous messages (cached on frontend)
         activeSessions.put(username, session);
     }
 
     @Override
     public void closeSession(String username) {
-        activeSessions.remove(username);
+        Session remove = activeSessions.remove(username);
+
+        try {
+            remove.close();
+        } catch (IOException ignore) {
+            
+        }
     }
 
     @Override

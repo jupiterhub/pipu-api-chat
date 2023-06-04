@@ -49,13 +49,12 @@ public class MessageRepositoryFirestore implements MessageRepository {
     @Override
     public List<Message> getMessageByChatId(String chatId) {
         try {
-            List<Message> messages = firestore.collection(MSG_COLLECTION)
+            return firestore.collection(MSG_COLLECTION)
                     .whereEqualTo("chatId", chatId)
                     .orderBy("sentTimestamp", Query.Direction.ASCENDING)
                     .get().get(MAX_QUERY_TIME_IN_SEC, TimeUnit.SECONDS)
                     .getDocuments().stream().map(snapshot -> snapshot.toObject(Message.class))
                     .toList();
-            return messages;
         } catch (InterruptedException e) {
             throw new MessageApiException("Interrupted while getting message. " + e.getMessage(), MessageApiError.GET_MSG_BY_CHAT_ID_REPO);
         } catch (ExecutionException e) {

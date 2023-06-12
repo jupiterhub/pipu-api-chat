@@ -9,7 +9,6 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.quarkus:quarkus-container-image-jib'
     implementation 'io.quarkiverse.googlecloudservices:quarkus-google-cloud-firestore'
     implementation enforcedPlatform("${quarkusPlatformGroupId}:quarkus-google-cloud-services-bom:${quarkusPlatformVersion}")
     implementation 'io.quarkus:quarkus-rest-client-reactive-jackson'
